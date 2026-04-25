@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.claude/
+Assignment 1/
+Assignment 2/
+Assignment 3/
+Assignment 4/
+Assignment 5/
+Code/
+Final Clinical Trails Data/
+Final Patients Synthea Data/
+mimic-iv-clinical-database-demo-2.2/
+Visualizations/
+model_cache.pkl
+Screenshot *.png
+.gitattributes
