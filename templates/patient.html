@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Portal — Second Life</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{background:#0d1117;}
+.trial-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1.5rem;}
+.score-circle{width:72px;height:72px;border-radius:50%;border:3px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;line-height:1.1;flex-shrink:0;}
+.score-circle small{font-size:.6rem;font-weight:500;}
+.score-high{color:#2ea043;}.score-mid{color:#d29922;}.score-low{color:#8b949e;}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;background:#0d1117;border-radius:8px;padding:.75rem;}
+@media(max-width:576px){.detail-grid{grid-template-columns:repeat(2,1fr);}}
+.detail-grid .lbl{font-size:.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;}
+.detail-grid .val{font-size:.9rem;font-weight:600;}
+.bar-section{background:#0d1117;border-radius:8px;padding:.75rem;}
+.bar-lbl{font-size:.75rem;color:#8b949e;}.bar-val{font-size:.75rem;font-weight:600;}
+.progress{height:5px;background:#21262d;}
+.sec-head{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#8b949e;margin-bottom:.5rem;font-weight:600;}
+.autocomplete-list{position:absolute;z-index:1000;width:100%;background:#161b22;border:1px solid #30363d;border-radius:0 0 6px 6px;max-height:190px;overflow-y:auto;display:none;list-style:none;padding:0;margin:0;}
+.autocomplete-list li{padding:.3rem .6rem;cursor:pointer;font-size:.85rem;}
+.autocomplete-list li:hover{background:#21262d;}
+.criteria-pre{white-space:pre-wrap;font-family:inherit;font-size:.78rem;background:#0d1117;padding:.6rem;border-radius:4px;max-height:200px;overflow-y:auto;}
+.st-pending{color:#d29922;}.st-accepted{color:#2ea043;}.st-rejected{color:#f85149;}.st-completed{color:#58a6ff;}
+.form-control,.form-select{background:#0d1117 !important;border-color:#30363d;color:#e6edf3 !important;}
+.form-control:focus,.form-select:focus{border-color:#58a6ff !important;box-shadow:0 0 0 .2rem rgba(88,166,255,.2) !important;}
+</style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar border-bottom border-secondary px-3 py-2" style="background:#161b22">
+  <span class="navbar-brand fw-bold" style="color:#58a6ff">⬡ Second Life</span>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-light small">{{ patient.first_name }} {{ patient.last_name }}</span>
+    <span class="badge bg-primary">Patient</span>
+    <button class="btn btn-sm btn-outline-secondary" id="logoutBtn">Logout</button>
+  </div>
+</nav>
+<!-- System banner -->
+<div id="sysBanner" class="alert alert-warning rounded-0 mb-0 py-2 text-center small" style="display:none">
+  ⏳ Pipeline still loading — trial matches will be available once model training completes.
+</div>
+
+<div class="container-xl py-3">
+  <ul class="nav nav-tabs mb-4" id="mainTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="profile">My Profile</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="trials">Suggested Trials</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="connections">My Connections</button></li>
+  </ul>
+
+  <!-- ===== PROFILE TAB ===== -->
+  <div id="tab-profile">
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="card border-secondary" style="background:#161b22">
+          <div class="card-header border-secondary">Personal Information</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label small">First Name</label>
+                <input type="text" class="form-control form-control-sm" id="pf-fn">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small">Last Name</label>
+                <input type="text" class="form-control form-control-sm" id="pf-ln">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small">Date of Birth</label>
+                <input type="date" class="form-control form-control-sm" id="pf-dob">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small">Gender</label>
+                <select class="form-select form-select-sm" id="pf-gender">
+                  <option value="">Select</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label small">Address</label>
+                <input type="text" class="form-control form-control-sm" id="pf-addr" placeholder="123 Main St Boston MA 02101">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-secondary mt-3" style="background:#161b22">
+          <div class="card-header border-secondary d-flex justify-content-between">
+            <span>Medical Conditions</span>
+            <small class="text-muted">Used for trial matching</small>
+          </div>
+          <div class="card-body">
+            <div id="condTags" class="d-flex flex-wrap gap-1 mb-2" style="min-height:1.8rem"></div>
+            <div class="position-relative">
+              <input type="text" class="form-control form-control-sm" id="condInput"
+                     placeholder="Type to search and add conditions…" autocomplete="off">
+              <ul class="autocomplete-list" id="condAutoList"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-secondary mt-3" style="background:#161b22">
+          <div class="card-header border-secondary">Medications</div>
+          <div class="card-body">
+            <div id="medTags" class="d-flex flex-wrap gap-1 mb-2" style="min-height:1.8rem"></div>
+            <input type="text" class="form-control form-control-sm" id="medInput"
+                   placeholder="Type medication name and press Enter…">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card border-secondary" style="background:#161b22">
+          <div class="card-header border-secondary">Trial Participation</div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="openToTrials">
+              <label class="form-check-label" for="openToTrials">
+                <strong>Open to Clinical Trials</strong>
+                <div class="text-muted small">Allow hospitals to see your basic profile when searching for eligible patients.</div>
+              </label>
+            </div>
+            <div class="alert alert-info py-2 small">
+              🔒 Your detailed information is only shared when <strong>you</strong> click "Connect with Hospital."
+            </div>
+          </div>
+        </div>
+        <div class="card border-secondary mt-3" style="background:#161b22">
+          <div class="card-header border-secondary">Account</div>
+          <div class="card-body small text-muted" id="acctInfo"></div>
+        </div>
+        <button class="btn btn-primary w-100 mt-3" id="saveBtn">Save Profile</button>
+        <div id="saveMsg" class="text-center small mt-2" style="min-height:1.2rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRIALS TAB ===== -->
+  <div id="tab-trials" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h6 class="mb-0">Trial Recommendations</h6>
+        <small class="text-muted">AI-ranked by eligibility probability using your profile data</small>
+      </div>
+      <button class="btn btn-primary btn-sm" id="getMatchesBtn">Get My Matches</button>
+    </div>
+    <div id="trialsLoading" class="text-center py-5" style="display:none">
+      <div class="spinner-border text-primary"></div>
+      <p class="text-muted mt-2 small">Analyzing your profile against clinical trials…</p>
+    </div>
+    <div id="trialsMsg" class="text-center py-5 text-muted" style="display:none"></div>
+    <div id="trialsResults"></div>
+  </div>
+
+  <!-- ===== CONNECTIONS TAB ===== -->
+  <div id="tab-connections" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">My Connections</h6>
+      <button class="btn btn-sm btn-outline-secondary" id="refreshConnsBtn">Refresh</button>
+    </div>
+    <div id="connsMsg" class="text-center py-5 text-muted" style="display:none">
+      No connections yet. Find a trial and click "Connect with Hospital."
+    </div>
+    <div id="connsWrap" style="display:none">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-sm align-middle">
+          <thead><tr>
+            <th>Hospital</th><th>Trial</th><th>Initiated By</th>
+            <th>Status</th><th>Message</th><th>Date</th>
+          </tr></thead>
+          <tbody id="connsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Connect with Hospital Modal -->
+<div class="modal fade" id="connectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-secondary" style="background:#161b22">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Connect with Hospital</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small" id="modalTrialInfo"></p>
+        <div class="sec-head">Select a Hospital</div>
+        <div id="hospitalList" class="list-group mb-3" style="max-height:200px;overflow-y:auto"></div>
+        <label class="form-label small">Message <span class="text-muted">(optional)</span></label>
+        <textarea class="form-control form-control-sm" id="modalMsg" rows="3"
+                  placeholder="Introduce yourself or ask a question…"></textarea>
+        <div class="alert alert-info py-2 small mt-3">
+          🔒 By connecting, you share your name, age, gender, and conditions with the selected hospital.
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="sendConnBtn" disabled>Send Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const PATIENT = {{ patient | tojson }};
+let conditions  = [...(PATIENT.conditions  || [])];
+let medications = [...(PATIENT.medications || [])];
+let sysReady = false;
+let connectModal, currentTrialId, currentTrialTitle, selectedHospId;
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  connectModal = new bootstrap.Modal(document.getElementById('connectModal'));
+
+  document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
+    b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('saveBtn').addEventListener('click', saveProfile);
+  document.getElementById('getMatchesBtn').addEventListener('click', loadTrials);
+  document.getElementById('refreshConnsBtn').addEventListener('click', loadConnections);
+  document.getElementById('sendConnBtn').addEventListener('click', submitConnect);
+
+  // Condition autocomplete
+  const ci = document.getElementById('condInput');
+  ci.addEventListener('input', () => condSearch(ci.value));
+  ci.addEventListener('keydown', e => { if(e.key==='Escape') hideCond(); });
+  document.addEventListener('click', e => {
+    if (!ci.contains(e.target) && !document.getElementById('condAutoList').contains(e.target))
+      hideCond();
+  });
+
+  // Medication input
+  document.getElementById('medInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const v = e.target.value.trim();
+      if (v && !medications.includes(v)) { medications.push(v); renderMedTags(); }
+      e.target.value = '';
+    }
+  });
+
+  // Hospital selection in modal (event delegation)
+  document.getElementById('hospitalList').addEventListener('click', e => {
+    const item = e.target.closest('[data-hid]');
+    if (!item) return;
+    selectedHospId = item.dataset.hid;
+    document.querySelectorAll('#hospitalList [data-hid]')
+            .forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('sendConnBtn').disabled = false;
+  });
+
+  // Trial results event delegation (interest + connect)
+  document.getElementById('trialsResults').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const {action, trialId, trialTitle, score} = btn.dataset;
+    if (action === 'interest') toggleInterest(btn, trialId, trialTitle, parseFloat(score));
+    if (action === 'connect')  openConnectModal(trialId, trialTitle);
+  });
+
+  initProfile();
+  checkStatus();
+});
+
+// ── STATUS ───────────────────────────────────────────────────────────────────
+async function checkStatus() {
+  try {
+    const d = await fetch('/api/status').then(r => r.json());
+    sysReady = !!d.ready;
+    document.getElementById('sysBanner').style.display = sysReady ? 'none' : '';
+  } catch(e) {}
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  ['profile','trials','connections'].forEach(t =>
+    document.getElementById('tab-'+t).style.display = t === name ? '' : 'none');
+  if (name === 'connections') loadConnections();
+}
+
+// ── PROFILE ──────────────────────────────────────────────────────────────────
+function initProfile() {
+  document.getElementById('pf-fn').value       = PATIENT.first_name || '';
+  document.getElementById('pf-ln').value       = PATIENT.last_name  || '';
+  document.getElementById('pf-dob').value      = PATIENT.dob        || '';
+  document.getElementById('pf-gender').value   = PATIENT.gender     || '';
+  document.getElementById('pf-addr').value     = PATIENT.address    || '';
+  document.getElementById('openToTrials').checked = !!PATIENT.open_to_trials;
+  document.getElementById('acctInfo').innerHTML =
+    'Username: <strong>' + escH(PATIENT.username) + '</strong><br>' +
+    'Member since: <strong>' + escH((PATIENT.created_at||'').split('T')[0]) + '</strong>';
+  renderCondTags(); renderMedTags();
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('saveBtn');
+  const msg = document.getElementById('saveMsg');
+  btn.disabled = true; btn.textContent = 'Saving…'; msg.textContent = '';
+  try {
+    const r = await fetch('/api/patient/profile', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        first_name:    document.getElementById('pf-fn').value.trim(),
+        last_name:     document.getElementById('pf-ln').value.trim(),
+        dob:           document.getElementById('pf-dob').value,
+        gender:        document.getElementById('pf-gender').value,
+        address:       document.getElementById('pf-addr').value.trim(),
+        conditions, medications,
+        open_to_trials: document.getElementById('openToTrials').checked ? 1 : 0,
+      })
+    });
+    const d = await r.json();
+    msg.className = r.ok ? 'text-success small mt-2' : 'text-danger small mt-2';
+    msg.textContent = r.ok ? '✓ Profile saved' : (d.error || 'Save failed');
+  } catch(e) {
+    msg.className = 'text-danger small mt-2'; msg.textContent = 'Network error';
+  }
+  btn.disabled = false; btn.textContent = 'Save Profile';
+}
+
+// ── CONDITION TAGS (XSS-safe — no innerHTML for user data) ───────────────────
+function renderCondTags() {
+  const wrap = document.getElementById('condTags');
+  wrap.innerHTML = '';
+  conditions.forEach(v => wrap.appendChild(makeTag(v, 'bg-secondary', () => {
+    conditions = conditions.filter(c => c !== v); renderCondTags();
+  })));
+}
+
+function renderMedTags() {
+  const wrap = document.getElementById('medTags');
+  wrap.innerHTML = '';
+  medications.forEach(v => wrap.appendChild(makeTag(v, 'bg-info text-dark', () => {
+    medications = medications.filter(m => m !== v); renderMedTags();
+  })));
+}
+
+function makeTag(val, cls, onRemove) {
+  const span = document.createElement('span');
+  span.className = `badge ${cls} d-inline-flex align-items-center gap-1`;
+  const t = document.createElement('span');
+  t.textContent = val;
+  const x = document.createElement('button');
+  x.type = 'button'; x.className = 'btn-close btn-close-white'; x.style.fontSize = '.45rem';
+  if (cls.includes('text-dark')) x.className = 'btn-close';
+  x.addEventListener('click', onRemove);
+  span.appendChild(t); span.appendChild(x);
+  return span;
+}
+
+// ── CONDITION AUTOCOMPLETE ────────────────────────────────────────────────────
+async function condSearch(q) {
+  if (q.length < 2) { hideCond(); return; }
+  try {
+    const d = await fetch('/api/conditions/autocomplete?q=' + encodeURIComponent(q)).then(r=>r.json());
+    const list = document.getElementById('condAutoList');
+    list.innerHTML = '';
+    if (!(d.results||[]).length) { list.style.display='none'; return; }
+    d.results.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        if (!conditions.includes(item)) { conditions.push(item); renderCondTags(); }
+        document.getElementById('condInput').value = ''; hideCond();
+      });
+      list.appendChild(li);
+    });
+    list.style.display = 'block';
+  } catch(e) { hideCond(); }
+}
+function hideCond() { document.getElementById('condAutoList').style.display = 'none'; }
+
+// ── TRIALS ───────────────────────────────────────────────────────────────────
+async function loadTrials() {
+  if (!sysReady) { await checkStatus(); }
+  if (!sysReady) { alert('Pipeline still loading. Please wait a moment.'); return; }
+  document.getElementById('trialsLoading').style.display = '';
+  document.getElementById('trialsMsg').style.display = 'none';
+  document.getElementById('trialsResults').innerHTML = '';
+  document.getElementById('getMatchesBtn').disabled = true;
+  try {
+    const r = await fetch('/api/patient/matches');
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    if (!(d.results||[]).length) {
+      const m = document.getElementById('trialsMsg');
+      m.style.display = ''; m.textContent = d.message || 'No matches found.';
+    } else {
+      renderTrials(d.results);
+    }
+  } catch(e) {
+    const m = document.getElementById('trialsMsg');
+    m.style.display = ''; m.className = 'text-danger text-center py-5';
+    m.textContent = e.message;
+  }
+  document.getElementById('trialsLoading').style.display = 'none';
+  document.getElementById('getMatchesBtn').disabled = false;
+}
+
+function renderTrials(trials) {
+  const wrap = document.getElementById('trialsResults');
+  wrap.innerHTML = '';
+  trials.forEach(t => { wrap.insertAdjacentHTML('beforeend', buildCard(t)); });
+}
+
+function buildCard(t) {
+  const sc  = t.eligibility_probability >= 75 ? 'score-high' : t.eligibility_probability >= 50 ? 'score-mid' : 'score-low';
+  const stc = t.status === 'RECRUITING' ? 'success' : t.status.includes('ACTIVE') ? 'info' : 'secondary';
+  const overlaps = new Set(t.overlap_conditions || []);
+
+  const bars = [
+    ['Eligibility Probability', t.eligibility_probability,          'primary'],
+    ['Age Compatibility',       t.age_compatibility,                'info'],
+    ['Gender Compatibility',    t.gender_compatibility,             'success'],
+    ['Match Score',             t.match_score,                      'warning'],
+    ['Geo Feasibility',         t.geo_feasibility,                  'secondary'],
+    ['Med Compatibility',       t.med_compatibility,                'secondary'],
+    ['Rarity Score',            Math.round(t.condition_rarity_score*100), 'secondary'],
+  ].map(([l,v,c]) => `
+    <div class="mb-1">
+      <div class="d-flex justify-content-between">
+        <span class="bar-lbl">${escH(l)}</span>
+        <span class="bar-val">${v}%</span>
+      </div>
+      <div class="progress"><div class="progress-bar bg-${c}" style="width:${Math.min(100,v)}%"></div></div>
+    </div>`).join('');
+
+  const condTags = (t.trial_conditions||[]).map(c =>
+    `<span class="badge ${overlaps.has(c)?'bg-success':'bg-dark border border-secondary'} me-1 mb-1">${escH(c)}</span>`
+  ).join('');
+
+  const interested = t.interest_status === 'interested';
+
+  return `
+  <div class="trial-card mb-4">
+    <div class="d-flex gap-3 align-items-start mb-3">
+      <div class="score-circle ${sc}">
+        <span>${t.eligibility_probability}</span><small>%</small>
+      </div>
+      <div class="flex-grow-1 min-w-0">
+        <div class="text-muted small mb-1">${escH(t.trial_id)} &bull; ${escH(t.phase||'N/A')}</div>
+        <h6 class="mb-2">${escH(t.title)}</h6>
+        <div class="d-flex flex-wrap gap-1">
+          <span class="badge bg-${stc}">${escH(t.status)}</span>
+          ${t.phase&&t.phase!=='N/A'?`<span class="badge bg-info text-dark">${escH(t.phase)}</span>`:''}
+          <span class="badge bg-secondary">${escH(t.sex||'ALL')}</span>
+          <span class="badge bg-secondary">${t.min_age}–${t.max_age} yrs</span>
+        </div>
+      </div>
+    </div>
+    ${t.summary?`<p class="text-muted small mb-3">${escH(t.summary)}</p>`:''}
+    <div class="detail-grid mb-3">
+      <div><div class="lbl">Age Range</div><div class="val">${t.min_age}–${t.max_age} yrs</div></div>
+      <div><div class="lbl">Gender</div><div class="val">${escH(t.sex||'ALL')}</div></div>
+      <div><div class="lbl">Sites</div><div class="val">${t.n_sites||'—'}</div></div>
+      <div><div class="lbl">Enrollment</div><div class="val">${t.enrollment||'—'}</div></div>
+    </div>
+    <div class="bar-section mb-3"><div class="sec-head">Match Analysis</div>${bars}</div>
+    <div class="mb-3">
+      <div class="sec-head">Conditions</div>
+      <div>${condTags}</div>
+      ${overlaps.size>0?'<div class="small text-success mt-1">🟢 Green = conditions matching your profile</div>':''}
+    </div>
+    ${t.criteria?`<details class="mb-3"><summary class="small text-muted" style="cursor:pointer">▶ Eligibility Criteria</summary>
+      <pre class="criteria-pre mt-2">${escH(t.criteria)}</pre></details>`:''}
+    <div class="d-flex flex-wrap gap-2 pt-2 border-top border-secondary mt-2">
+      <a href="https://clinicaltrials.gov/study/${escA(t.trial_id)}" target="_blank" rel="noopener"
+         class="btn btn-sm btn-outline-secondary">View on ClinicalTrials.gov ↗</a>
+      <button class="btn btn-sm ${interested?'btn-success':'btn-outline-success'}"
+              data-action="interest" data-trial-id="${escA(t.trial_id)}"
+              data-trial-title="${escA(t.title)}" data-score="${t.combined_score}">
+        ${interested?'✓ Interested':"I'm Interested"}</button>
+      <button class="btn btn-sm btn-outline-primary"
+              data-action="connect" data-trial-id="${escA(t.trial_id)}"
+              data-trial-title="${escA(t.title)}">Connect with Hospital</button>
+    </div>
+  </div>`;
+}
+
+async function toggleInterest(btn, trialId, title, score) {
+  const isOn = btn.classList.contains('btn-success');
+  if (isOn) {
+    await fetch('/api/patient/interest/'+encodeURIComponent(trialId), {method:'DELETE'});
+    btn.className = 'btn btn-sm btn-outline-success';
+    btn.textContent = "I'm Interested";
+  } else {
+    await fetch('/api/patient/interest', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({trial_id:trialId, trial_title:title, match_score:score})
+    });
+    btn.className = 'btn btn-sm btn-success';
+    btn.textContent = '✓ Interested';
+  }
+}
+
+// ── CONNECT WITH HOSPITAL ─────────────────────────────────────────────────────
+async function openConnectModal(trialId, title) {
+  currentTrialId = trialId; currentTrialTitle = title;
+  selectedHospId = null;
+  document.getElementById('sendConnBtn').disabled = true;
+  document.getElementById('modalTrialInfo').textContent = 'Trial: ' + title;
+  document.getElementById('modalMsg').value = '';
+  const list = document.getElementById('hospitalList');
+  list.innerHTML = '<div class="list-group-item text-muted small">Loading hospitals…</div>';
+  connectModal.show();
+  try {
+    const d = await fetch('/api/patient/hospitals-for-trial?trial_id='+encodeURIComponent(trialId)).then(r=>r.json());
+    list.innerHTML = '';
+    if (!(d.hospitals||[]).length) {
+      list.innerHTML = '<div class="list-group-item text-muted small">No registered hospitals for this trial.</div>';
+      return;
+    }
+    d.hospitals.forEach(h => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'list-group-item list-group-item-action';
+      btn.dataset.hid = h.id;
+      const nm = document.createElement('strong'); nm.textContent = h.hospital_name;
+      const lc = document.createElement('small');
+      lc.className = 'd-block text-muted'; lc.textContent = h.location || '';
+      btn.appendChild(nm); btn.appendChild(lc); list.appendChild(btn);
+    });
+  } catch(e) {
+    list.innerHTML = '<div class="list-group-item text-danger small">Error loading hospitals.</div>';
+  }
+}
+
+async function submitConnect() {
+  if (!selectedHospId) return;
+  try {
+    const r = await fetch('/api/patient/connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({hospital_id:selectedHospId, trial_id:currentTrialId,
+                            trial_title:currentTrialTitle,
+                            message:document.getElementById('modalMsg').value.trim()})
+    });
+    const d = await r.json();
+    if (r.ok) { connectModal.hide(); switchTab('connections'); }
+    else alert(d.error || 'Request failed');
+  } catch(e) { alert('Network error'); }
+}
+
+// ── CONNECTIONS ───────────────────────────────────────────────────────────────
+async function loadConnections() {
+  try {
+    const d = await fetch('/api/patient/connections').then(r=>r.json());
+    const conns = d.connections || [];
+    const msg  = document.getElementById('connsMsg');
+    const wrap = document.getElementById('connsWrap');
+    const tbody= document.getElementById('connsTbody');
+    if (!conns.length) { msg.style.display=''; wrap.style.display='none'; return; }
+    msg.style.display='none'; wrap.style.display='';
+    tbody.innerHTML = '';
+    conns.forEach(c => {
+      const sc = {pending:'st-pending',accepted:'st-accepted',rejected:'st-rejected',completed:'st-completed'}[c.status]||'';
+      const tr = document.createElement('tr');
+      tr.innerHTML = [
+        escH(c.hospital_name||'—'),
+        escH((c.trial_title||'—').substring(0,50)),
+        escH(c.initiated_by||''),
+        `<span class="${sc} fw-bold">${escH(c.status)}</span>`,
+        escH((c.message||'').substring(0,60)),
+        escH((c.created_at||'').split('T')[0]),
+      ].map(v=>`<td>${v}</td>`).join('');
+      tbody.appendChild(tr);
+    });
+  } catch(e) {}
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function escH(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(s||'')));
+  return d.innerHTML;
+}
+function escA(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+async function logout() {
+  await fetch('/auth/logout', {method:'POST'});
+  location.href = '/';
+}
+</script>
+</body>
+</html>

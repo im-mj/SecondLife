@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Portal — Second Life</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{background:#0d1117;}
+.patient-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1.25rem;height:100%;}
+.form-control,.form-select{background:#0d1117 !important;border-color:#30363d;color:#e6edf3 !important;}
+.form-control:focus{border-color:#58a6ff !important;box-shadow:0 0 0 .2rem rgba(88,166,255,.2) !important;}
+.autocomplete-list{position:absolute;z-index:1000;width:100%;background:#161b22;border:1px solid #30363d;
+  border-radius:0 0 6px 6px;max-height:190px;overflow-y:auto;display:none;list-style:none;padding:0;margin:0;}
+.autocomplete-list li{padding:.3rem .6rem;cursor:pointer;font-size:.85rem;color:#c9d1d9;}
+.autocomplete-list li:hover{background:#21262d;}
+.st-pending{color:#d29922;}.st-accepted{color:#2ea043;}.st-rejected{color:#f85149;}.st-completed{color:#58a6ff;}
+</style>
+</head>
+<body>
+<nav class="navbar border-bottom border-secondary px-3 py-2" style="background:#161b22">
+  <span class="navbar-brand fw-bold" style="color:#58a6ff">⬡ Second Life</span>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-light small">{{ hospital.hospital_name }}</span>
+    <span class="badge bg-success">Hospital</span>
+    <button class="btn btn-sm btn-outline-secondary" id="logoutBtn">Logout</button>
+  </div>
+</nav>
+
+<div class="container-xl py-3">
+  <ul class="nav nav-tabs mb-4" id="mainTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="patients">Available Patients</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="search">Search by Condition</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="connections">My Connections</button></li>
+  </ul>
+
+  <!-- ===== AVAILABLE PATIENTS ===== -->
+  <div id="tab-patients">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h6 class="mb-0">Patients Open to Trials</h6>
+        <small class="text-muted">Patients who have opted in to be contacted by research hospitals</small>
+      </div>
+      <button class="btn btn-sm btn-primary" id="refreshPatientsBtn">Refresh</button>
+    </div>
+    <div id="pLoading" class="text-center py-4" style="display:none">
+      <div class="spinner-border text-primary spinner-border-sm"></div>
+    </div>
+    <div id="pEmpty" class="text-center py-5 text-muted" style="display:none">
+      No patients are currently open to trials.
+    </div>
+    <div class="row g-3" id="pGrid"></div>
+  </div>
+
+  <!-- ===== SEARCH ===== -->
+  <div id="tab-search" style="display:none">
+    <div class="row g-3 align-items-end mb-4">
+      <div class="col-md-6">
+        <label class="form-label small fw-bold">Search by Medical Condition</label>
+        <div class="position-relative">
+          <input type="text" class="form-control" id="searchInput"
+                 placeholder="e.g. hypertension, diabetes…" autocomplete="off">
+          <ul class="autocomplete-list" id="searchAutoList"></ul>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" id="searchBtn">Search</button>
+      </div>
+      <div class="col-md-4">
+        <div class="alert alert-secondary py-2 small mb-0">
+          Only patients who are <strong>open to trials</strong> appear in results.
+        </div>
+      </div>
+    </div>
+    <div id="sLoading" class="text-center py-4" style="display:none">
+      <div class="spinner-border text-primary spinner-border-sm"></div>
+    </div>
+    <div id="sEmpty" class="text-center py-5 text-muted" style="display:none">
+      No matching patients found for this condition.
+    </div>
+    <div class="row g-3" id="sGrid"></div>
+  </div>
+
+  <!-- ===== CONNECTIONS ===== -->
+  <div id="tab-connections" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">Connection Requests</h6>
+      <button class="btn btn-sm btn-outline-secondary" id="refreshConnsBtn">Refresh</button>
+    </div>
+    <div id="cEmpty" class="text-center py-5 text-muted" style="display:none">
+      No connection requests yet.
+    </div>
+    <div id="cWrap" style="display:none">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-sm align-middle">
+          <thead><tr>
+            <th>Patient</th><th>Age/Gender</th><th>Conditions</th>
+            <th>Trial</th><th>Initiated</th><th>Status</th><th>Message</th><th>Action</th>
+          </tr></thead>
+          <tbody id="cTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Connect with Patient Modal -->
+<div class="modal fade" id="connectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-secondary" style="background:#161b22">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Connect with Patient</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small" id="modalPatientInfo"></p>
+        <label class="form-label small">Message <span class="text-muted">(optional)</span></label>
+        <textarea class="form-control form-control-sm" id="modalMsg" rows="3"
+                  placeholder="Introduce your trial or research program…"></textarea>
+        <div class="alert alert-info py-2 small mt-3">
+          The patient will receive your request and can choose to accept or decline.
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success btn-sm" id="sendConnBtn">Send Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const HOSPITAL = {{ hospital | tojson }};
+let connectModal, targetPatientId;
+
+document.addEventListener('DOMContentLoaded', () => {
+  connectModal = new bootstrap.Modal(document.getElementById('connectModal'));
+
+  document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
+    b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('refreshPatientsBtn').addEventListener('click', loadPatients);
+  document.getElementById('refreshConnsBtn').addEventListener('click', loadConnections);
+  document.getElementById('searchBtn').addEventListener('click', doSearch);
+  document.getElementById('sendConnBtn').addEventListener('click', submitConnect);
+
+  // Condition autocomplete
+  const si = document.getElementById('searchInput');
+  si.addEventListener('input', () => condAuto(si.value));
+  si.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') hideAuto(); });
+  document.addEventListener('click', e => { if (!si.contains(e.target)) hideAuto(); });
+
+  // Event delegation for connections table action buttons
+  document.getElementById('cTbody').addEventListener('click', e => {
+    const btn = e.target.closest('[data-cid]');
+    if (btn) updateStatus(btn.dataset.cid, btn.dataset.st);
+  });
+
+  loadPatients();
+});
+
+function switchTab(name) {
+  document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  ['patients','search','connections'].forEach(t =>
+    document.getElementById('tab-'+t).style.display = t === name ? '' : 'none');
+  if (name === 'connections') loadConnections();
+}
+
+// ── PATIENTS ─────────────────────────────────────────────────────────────────
+async function loadPatients() {
+  show('pLoading'); hide('pEmpty'); document.getElementById('pGrid').innerHTML = '';
+  try {
+    const d = await fetch('/api/hospital/patients').then(r=>r.json());
+    renderGrid(d.patients||[], 'pGrid', 'pEmpty');
+  } catch(e) { show('pEmpty'); }
+  hide('pLoading');
+}
+
+async function doSearch() {
+  const cond = document.getElementById('searchInput').value.trim();
+  hideAuto();
+  show('sLoading'); hide('sEmpty'); document.getElementById('sGrid').innerHTML = '';
+  try {
+    const d = await fetch('/api/hospital/patients?condition='+encodeURIComponent(cond)).then(r=>r.json());
+    renderGrid(d.patients||[], 'sGrid', 'sEmpty');
+  } catch(e) { show('sEmpty'); }
+  hide('sLoading');
+}
+
+function renderGrid(patients, gridId, emptyId) {
+  const grid = document.getElementById(gridId);
+  if (!patients.length) { show(emptyId); return; }
+  hide(emptyId);
+  patients.forEach(p => {
+    const age  = p.dob ? Math.floor((Date.now()-new Date(p.dob))/31557600000) : '?';
+    const conds= (p.conditions||[]).slice(0,5);
+    const col  = document.createElement('div');
+    col.className = 'col-xl-3 col-lg-4 col-md-6';
+
+    const card = document.createElement('div');
+    card.className = 'patient-card d-flex flex-column';
+
+    const name = document.createElement('h6');
+    name.className = 'mb-1';
+    name.textContent = (p.first_name||'') + ' ' + (p.last_name||'');
+
+    const meta = document.createElement('div');
+    meta.className = 'text-muted small mb-2';
+    meta.textContent = `Age ${age} • ${p.gender||'?'}`;
+
+    const condWrap = document.createElement('div');
+    condWrap.className = 'flex-grow-1 mb-3';
+    conds.forEach(c => {
+      const badge = document.createElement('span');
+      badge.className = 'badge bg-secondary me-1 mb-1';
+      badge.textContent = c;
+      condWrap.appendChild(badge);
+    });
+    if ((p.conditions||[]).length > 5) {
+      const more = document.createElement('span');
+      more.className = 'text-muted small';
+      more.textContent = `+${p.conditions.length-5} more`;
+      condWrap.appendChild(more);
+    }
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm btn-outline-success w-100';
+    btn.textContent = 'Connect with Patient';
+    btn.addEventListener('click', () => openConnectModal(p.id, name.textContent));
+
+    card.appendChild(name); card.appendChild(meta);
+    card.appendChild(condWrap); card.appendChild(btn);
+    col.appendChild(card);
+    grid.appendChild(col);
+  });
+}
+
+// ── CONNECT WITH PATIENT ──────────────────────────────────────────────────────
+function openConnectModal(patientId, name) {
+  targetPatientId = patientId;
+  document.getElementById('modalPatientInfo').textContent = 'Patient: ' + name;
+  document.getElementById('modalMsg').value = '';
+  connectModal.show();
+}
+
+async function submitConnect() {
+  if (!targetPatientId) return;
+  try {
+    const r = await fetch('/api/hospital/connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({patient_id:targetPatientId, message:document.getElementById('modalMsg').value.trim()})
+    });
+    const d = await r.json();
+    if (r.ok) { connectModal.hide(); switchTab('connections'); }
+    else alert(d.error||'Failed');
+  } catch(e) { alert('Network error'); }
+}
+
+// ── CONNECTIONS ───────────────────────────────────────────────────────────────
+async function loadConnections() {
+  try {
+    const d = await fetch('/api/hospital/connections').then(r=>r.json());
+    const conns = d.connections||[];
+    const empty = document.getElementById('cEmpty');
+    const wrap  = document.getElementById('cWrap');
+    const tbody = document.getElementById('cTbody');
+    if (!conns.length) { show('cEmpty'); hide('cWrap'); return; }
+    hide('cEmpty'); show('cWrap');
+    tbody.innerHTML = '';
+    conns.forEach(c => {
+      const age  = c.dob ? Math.floor((Date.now()-new Date(c.dob))/31557600000) : '?';
+      const cstr = (Array.isArray(c.conditions)?c.conditions:[]).slice(0,3).join(', ');
+      const sc   = {pending:'st-pending',accepted:'st-accepted',rejected:'st-rejected',completed:'st-completed'}[c.status]||'';
+      const tr   = document.createElement('tr');
+      tr.innerHTML = [
+        escH((c.first_name||'')+ ' ' +(c.last_name||'')),
+        escH(age+' / '+(c.gender||'?')),
+        escH(cstr||'—'),
+        escH((c.trial_title||'—').substring(0,40)),
+        escH(c.initiated_by||''),
+        `<span class="${sc} fw-bold">${escH(c.status)}</span>`,
+        escH((c.message||'').substring(0,50)),
+        statusBtns(c.id, c.status),
+      ].map(v=>`<td>${v}</td>`).join('');
+      tbody.appendChild(tr);
+    });
+  } catch(e) {}
+}
+
+function statusBtns(cid, status) {
+  const sa = escA(cid);
+  if (status === 'pending') return `
+    <div class="d-flex gap-1">
+      <button class="btn btn-sm btn-success py-0 px-2" style="font-size:.72rem" data-cid="${sa}" data-st="accepted">Accept</button>
+      <button class="btn btn-sm btn-danger py-0 px-2" style="font-size:.72rem" data-cid="${sa}" data-st="rejected">Reject</button>
+    </div>`;
+  if (status === 'accepted') return `
+    <button class="btn btn-sm btn-secondary py-0 px-2" style="font-size:.72rem" data-cid="${sa}" data-st="completed">Complete</button>`;
+  return '';
+}
+
+async function updateStatus(cid, status) {
+  await fetch(`/api/hospital/connections/${cid}/status`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status})
+  });
+  loadConnections();
+}
+
+// ── CONDITION AUTOCOMPLETE ────────────────────────────────────────────────────
+async function condAuto(q) {
+  if (q.length < 2) { hideAuto(); return; }
+  try {
+    const d = await fetch('/api/conditions/autocomplete?q='+encodeURIComponent(q)).then(r=>r.json());
+    const list = document.getElementById('searchAutoList');
+    list.innerHTML = '';
+    if (!(d.results||[]).length) { list.style.display='none'; return; }
+    d.results.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        document.getElementById('searchInput').value = item;
+        hideAuto(); doSearch();
+      });
+      list.appendChild(li);
+    });
+    list.style.display = 'block';
+  } catch(e) { hideAuto(); }
+}
+function hideAuto() { document.getElementById('searchAutoList').style.display = 'none'; }
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function show(id) { document.getElementById(id).style.display = ''; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+function escH(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(s||'')));
+  return d.innerHTML;
+}
+function escA(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+async function logout() {
+  await fetch('/auth/logout', {method:'POST'}); location.href = '/';
+}
+</script>
+</body>
+</html>
