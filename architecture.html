@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Life — Architecture Diagrams</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  header {
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    color: #58a6ff;
+    margin-bottom: 0.25rem;
+  }
+
+  header p { color: #8b949e; font-size: 0.95rem; }
+
+  .toc {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .toc h3 { color: #79c0ff; font-size: 0.875rem; text-transform: uppercase;
+             letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+
+  .toc ol { padding-left: 1.25rem; }
+
+  .toc li { margin-bottom: 0.3rem; }
+
+  .toc a { color: #58a6ff; text-decoration: none; font-size: 0.9rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+
+  section h2 {
+    font-size: 1.4rem;
+    color: #79c0ff;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    color: #8b949e;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .diagram-wrap {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 2rem;
+    overflow-x: auto;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .legend {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #8b949e;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .note {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #1c2128;
+    border-left: 3px solid #388bfd;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.85rem;
+    color: #8b949e;
+  }
+
+  .note strong { color: #c9d1d9; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    body { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚕️ Second Life — Architecture Diagrams</h1>
+  <p>DSCI 5260 · Group 7 · AI-powered Patient-to-Clinical-Trial Matching Platform · Flask + SQLite + Random Forest</p>
+</header>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#s1">System Architecture Overview</a></li>
+    <li><a href="#s2">Database Schema (ER Diagram)</a></li>
+    <li><a href="#s3">ML Pipeline — Boot, Train, Infer</a></li>
+    <li><a href="#s4">Patient User Journey (Sequence)</a></li>
+    <li><a href="#s5">Hospital User Journey (Sequence)</a></li>
+    <li><a href="#s6">Tiered Matching Logic</a></li>
+    <li><a href="#s7">Feature Engineering — 17 Features</a></li>
+  </ol>
+</div>
+
+<!-- =========================================================
+     1. SYSTEM ARCHITECTURE OVERVIEW
+     ========================================================= -->
+<section id="s1">
+  <h2>1. System Architecture Overview</h2>
+  <p class="subtitle">
+    Four-layer architecture: Browser &rarr; Flask Server &rarr; Business Logic (DB + ML) &rarr; Storage.
+    The pipeline boots in a background thread so the server is immediately available.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart LR
+    subgraph BROWSER["🌐  Browser  (Client)"]
+        direction TB
+        LAND["<b>landing.html</b><br/>Login · Register<br/>(Patient &amp; Hospital)"]
+        subgraph PAT_SPA["Patient Portal — patient.html"]
+            direction TB
+            PA["My Profile<br/><small>conditions · meds · docs upload</small>"]
+            PB["Suggested Trials<br/><small>AI-ranked top-20</small>"]
+            PC["My Connections<br/><small>status · chat</small>"]
+            PD["Inbox 🔴<br/><small>unread count badge</small>"]
+        end
+        subgraph HOSP_SPA["Hospital Portal — hospital.html"]
+            direction TB
+            HA["Available Patients<br/><small>opt-in only, excl. connected</small>"]
+            HB["Search by Condition<br/><small>incl. connected toggle</small>"]
+            HC["My Trials<br/><small>active trials matched to hospital</small>"]
+            HD["Inbox 🔴<br/><small>unread count badge</small>"]
+            HE["My Connections<br/><small>accept · reject · complete · chat</small>"]
+            HF["My Profile<br/><small>name · location · conditions</small>"]
+        end
+    end
+
+    subgraph SERVER["⚙️  Flask Server — app.py  (:5000)"]
+        direction TB
+        subgraph AUTH_GRP["Auth (no session required)"]
+            AU["/auth/patient/register<br/>/auth/patient/login<br/>/auth/hospital/register<br/>/auth/hospital/login<br/>/auth/logout"]
+        end
+        subgraph PAT_GRP["Patient API"]
+            PAR["/api/patient/profile  GET · POST<br/>/api/patient/matches  GET<br/>/api/patient/interests  GET · POST · DELETE<br/>/api/patient/connections  GET<br/>/api/patient/connect  POST<br/>/api/patient/hospitals-for-trial  GET"]
+        end
+        subgraph MSG_GRP["Messaging + Inbox"]
+            MR["/api/patient/connections/&lt;cid&gt;/messages  GET · POST<br/>/api/patient/inbox  GET<br/>/api/hospital/connections/&lt;cid&gt;/messages  GET · POST<br/>/api/hospital/inbox  GET"]
+        end
+        subgraph HOSP_GRP["Hospital API"]
+            HAR["/api/hospital/profile  GET · POST<br/>/api/hospital/patients  GET<br/>/api/hospital/trials  GET<br/>/api/hospital/connect  POST<br/>/api/hospital/connections  GET<br/>/api/hospital/connections/&lt;cid&gt;/status  PUT"]
+        end
+        subgraph DOC_GRP["Documents"]
+            DR["/api/patient/documents  GET · POST<br/>/api/patient/documents/&lt;id&gt;  DELETE<br/>/api/patient/documents/&lt;id&gt;/download  GET"]
+        end
+        subgraph SHARED_GRP["Shared"]
+            SR["/api/status  GET<br/>/api/conditions/autocomplete  GET"]
+        end
+        BOOT["<b>Boot Thread</b><br/>init_db()<br/>pipeline.load()<br/>pipeline.train()"]
+    end
+
+    subgraph LOGIC["🧠  Business Logic"]
+        direction TB
+        subgraph DB_LAYER["database.py — SQLite Layer"]
+            T1[("patient_accounts<br/><small>25 rows</small>")]
+            T2[("hospital_accounts<br/><small>3 rows</small>")]
+            T3[("patient_trial_interests")]
+            T4[("connections")]
+            T5[("connection_messages")]
+        end
+        subgraph ML_LAYER["pipeline.py — ML Engine"]
+            ML1["Data Loader<br/><small>CSV → in-memory dicts</small>"]
+            ML2["Feature Engineer<br/><small>17 features per patient-trial pair</small>"]
+            ML3["RF + Isotonic Cal.<br/><small>90k pairs · AUC 0.60</small>"]
+            ML4["match_patient()"]
+            ML5["trials_for_hospital()"]
+            ML6["hospitals_for_trial()"]
+        end
+    end
+
+    subgraph STORAGE["💾  Storage"]
+        direction TB
+        SDB[("secondlife.db<br/><small>SQLite file</small>")]
+        SCACHE[("model_cache.pkl<br/><small>RF + calibrator</small>")]
+        SFILES["uploads/patient_docs/<br/><small>per-patient dirs</small>"]
+        SCSV_P["Synthea CSVs<br/><small>4 files · ~1M rows</small>"]
+        SCSV_T["ClinicalTrials CSVs<br/><small>7 files · ~2M rows</small>"]
+    end
+
+    LAND -->|"POST /auth/*"| AU
+    PAT_SPA -->|"REST/JSON"| PAR
+    PAT_SPA -->|"REST/JSON"| MSG_GRP
+    PAT_SPA -->|"multipart"| DOC_GRP
+    HOSP_SPA -->|"REST/JSON"| HAR
+    HOSP_SPA -->|"REST/JSON"| MSG_GRP
+    PAT_SPA & HOSP_SPA -->|"GET"| SHARED_GRP
+
+    AU & PAR & HAR --> DB_LAYER
+    MSG_GRP --> T4 & T5
+    DOC_GRP --> T1
+    DOC_GRP -->|"file I/O"| SFILES
+
+    PAR -->|"match_patient()"| ML4
+    PAR -->|"hospitals_for_trial()"| ML6
+    HAR -->|"trials_for_hospital()"| ML5
+
+    BOOT -->|"seeds data"| T1
+    BOOT -->|"load + train"| ML_LAYER
+
+    DB_LAYER <-->|"read/write"| SDB
+    ML3 <-->|"load/save"| SCACHE
+    ML1 -->|"read on boot"| SCSV_P
+    ML1 -->|"read on boot"| SCSV_T
+
+    ML1 --> ML2 --> ML3 --> ML4 & ML5 & ML6
+    </div>
+    <div class="note">
+      <strong>Boot sequence:</strong> On startup a background thread calls <code>init_db()</code> (seeds 25 patients + 3 hospitals),
+      then <code>pipeline.load()</code> (reads all CSVs into memory), then <code>pipeline.train()</code>
+      (builds RF model or loads <code>model_cache.pkl</code>). The Flask server is immediately available during boot;
+      <code>GET /api/status</code> returns <code>ready: false</code> until the thread completes.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     2. DATABASE SCHEMA
+     ========================================================= -->
+<section id="s2">
+  <h2>2. Database Schema</h2>
+  <p class="subtitle">
+    SQLite database (<code>secondlife.db</code>) with 5 tables.
+    JSON columns (conditions, medications, documents, research_conditions) are stored as TEXT and parsed by
+    <code>_row_to_dict()</code> in database.py.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+erDiagram
+    patient_accounts {
+        TEXT id PK
+        TEXT username UK
+        TEXT password_hash
+        TEXT synthea_id "null for hand-made patients"
+        TEXT first_name
+        TEXT last_name
+        TEXT dob
+        TEXT gender
+        TEXT address
+        TEXT conditions "JSON array of strings"
+        TEXT medications "JSON array of strings"
+        TEXT documents "JSON array of file metadata dicts"
+        INTEGER open_to_trials "0 or 1"
+        TEXT created_at
+    }
+
+    hospital_accounts {
+        TEXT id PK
+        TEXT username UK
+        TEXT password_hash
+        TEXT hospital_name
+        TEXT location "City, ST format"
+        TEXT research_conditions "JSON array of strings"
+        TEXT created_at
+    }
+
+    patient_trial_interests {
+        TEXT id PK
+        TEXT patient_id FK
+        TEXT trial_id "NCT number"
+        TEXT trial_title
+        REAL match_score
+        TEXT status "interested or withdrawn"
+        TEXT created_at
+    }
+
+    connections {
+        TEXT id PK
+        TEXT patient_id FK
+        TEXT hospital_id FK
+        TEXT trial_id "nullable NCT number"
+        TEXT trial_title
+        TEXT initiated_by "patient or hospital"
+        TEXT status "pending accepted rejected completed"
+        TEXT message
+        TEXT created_at
+    }
+
+    connection_messages {
+        TEXT id PK
+        TEXT connection_id FK
+        TEXT sender_role "patient or hospital"
+        TEXT sender_id
+        TEXT body "max 2000 chars"
+        TEXT created_at
+        INTEGER is_read "0 or 1"
+    }
+
+    patient_accounts ||--o{ patient_trial_interests : "saves interests"
+    patient_accounts ||--o{ connections : "initiates or receives"
+    hospital_accounts ||--o{ connections : "initiates or receives"
+    connections ||--o{ connection_messages : "contains messages"
+    </div>
+    <div class="note">
+      <strong>Uniqueness:</strong> <code>connections</code> has a composite unique index
+      <code>idx_conn_unique ON connections(patient_id, hospital_id, COALESCE(trial_id, ''))</code>
+      to prevent duplicate connection requests even when <code>trial_id</code> is NULL.
+      <code>patient_trial_interests</code> has <code>UNIQUE(patient_id, trial_id)</code>.
+      <code>connection_messages</code> has index <code>idx_msgs_conn ON (connection_id, created_at)</code>.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     3. ML PIPELINE
+     ========================================================= -->
+<section id="s3">
+  <h2>3. ML Pipeline — Boot, Train, Infer</h2>
+  <p class="subtitle">
+    <code>pipeline.py</code> — Data loading from 11 CSV files, pseudo-label generation,
+    Random Forest training with isotonic calibration, and 3 inference functions.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart TD
+    subgraph BOOT_TH["Boot Thread (background, server stays live during this)"]
+        direction LR
+        BT1["pipeline.load()"] --> BT2["pipeline.train()"]
+    end
+
+    subgraph LOAD_PHASE["load() — CSV Ingestion into Memory"]
+        direction LR
+        subgraph TRIAL_CSV["ClinicalTrials.gov CSVs"]
+            TC1["trail_studies.csv<br/><small>→ trial_profiles dict<br/>→ active_trial_ids set<br/>65k recruiting trials</small>"]
+            TC2["trail_conditions.csv<br/><small>→ trial_conditions dict<br/>34k trials with conditions</small>"]
+            TC3["trail_eligibilities.csv<br/><small>→ age range + gender per trial</small>"]
+            TC4["trail_facilities.csv<br/><small>→ trial_us_states dict<br/>→ trial_facility_tokens dict<br/>189k trials with US geo</small>"]
+            TC5["trail_interventions.csv<br/><small>→ trial_drug_keywords dict<br/>196k trials with drug data</small>"]
+            TC6["trail_brief_summaries.csv<br/><small>→ trial_summaries dict</small>"]
+            TC7["trail_keywords.csv<br/><small>→ trial_keywords dict</small>"]
+        end
+        subgraph SYNTHEA_CSV["Synthea Patient CSVs"]
+            SC1["patients_details.csv<br/><small>→ patient_demographics dict<br/>265k patients</small>"]
+            SC2["final_patients_conditions.csv<br/><small>→ patient_conditions dict<br/>106 overlapping conditions</small>"]
+            SC3["patients_medications.csv<br/><small>→ patient_medications dict<br/>213k patients</small>"]
+            SC4["patients_observations.csv<br/><small>→ patient_lab_types dict<br/>23k patients</small>"]
+        end
+    end
+
+    subgraph TRAIN_PHASE["train() — Model Training"]
+        direction TB
+        TR1["Sample 3000 patients × 30 trials<br/>+ random negatives<br/><small>GroupShuffleSplit 80/20 patient-level</small>"]
+        TR2["_compute_features()<br/><small>17-feature vector per patient-trial pair<br/>~90k training pairs total</small>"]
+        TR3["Pseudo-label generation<br/><small>6-feature weighted score >= 0.5<br/>+ 15% hash-deterministic noise<br/>→ 82.1% positive rate</small>"]
+        TR4["RandomForestClassifier<br/><small>n_estimators=200, max_depth=12<br/>class_weight=balanced</small>"]
+        TR5["CalibratedClassifierCV<br/><small>method=isotonic, cv=3</small>"]
+        TR6["Save model_cache.pkl<br/><small>skip training on next boot</small>"]
+        TR1 --> TR2 --> TR3 --> TR4 --> TR5 --> TR6
+    end
+
+    subgraph INFER["Inference — 3 Matching Functions"]
+        direction LR
+        IN1["<b>match_patient()</b><br/><small>Input: conditions, age, gender, patient_id<br/>Output: top-k trials ranked by<br/>combined_score = 0.6×eligibility_prob + 0.4×match_score</small>"]
+        IN2["<b>trials_for_hospital()</b><br/><small>Input: hospital name, location, research_conditions<br/>Output: active trials in 3 tiers<br/>Tier1: facility name Jaccard >= 0.25<br/>Tier2: same US state<br/>Tier3: condition overlap</small>"]
+        IN3["<b>hospitals_for_trial()</b><br/><small>Input: trial_id<br/>Output: DB hospitals in 4 tiers<br/>Tier1: name Jaccard >= 0.25<br/>Tier2: same state<br/>Tier3: condition overlap<br/>Tier4: fallback</small>"]
+    end
+
+    BOOT_TH --> LOAD_PHASE
+    BOOT_TH --> TRAIN_PHASE
+    LOAD_PHASE --> TR1
+    TR5 --> IN1
+    LOAD_PHASE --> IN2
+    LOAD_PHASE --> IN3
+    </div>
+    <div class="note">
+      <strong>Cache behaviour:</strong> If <code>model_cache.pkl</code> exists on disk, <code>train()</code> loads the cached RF + calibrator
+      and skips the ~2-3 min training step. Delete the file to force a full retrain (required after changing features or pipeline logic).
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     4. PATIENT JOURNEY
+     ========================================================= -->
+<section id="s4">
+  <h2>4. Patient User Journey</h2>
+  <p class="subtitle">
+    Key request-response flows through the patient portal, from registration to messaging.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    actor Patient
+    participant UI as patient.html
+    participant Flask as Flask (app.py)
+    participant DB as database.py
+    participant ML as pipeline.py
+    participant FS as File System
+
+    Note over Patient,FS: Registration / Login
+    Patient->>UI: Fill register form
+    UI->>Flask: POST /auth/patient/register
+    Flask->>DB: create_patient()
+    DB-->>Flask: patient dict (or 409 username taken)
+    Flask-->>UI: session cookie + patient JSON
+    UI->>UI: Render portal, call checkStatus()
+
+    Note over Patient,FS: Pipeline ready check
+    UI->>Flask: GET /api/status
+    Flask-->>UI: ready: false (202) or ready: true + stats
+    UI->>UI: Show yellow banner if not ready; startStatusPoll() every 5s
+
+    Note over Patient,FS: Profile update
+    Patient->>UI: Edit conditions / medications / toggle open_to_trials
+    UI->>Flask: POST /api/patient/profile
+    Flask->>DB: update_patient_profile()
+
+    Note over Patient,FS: Get AI trial matches
+    Patient->>UI: Click "Suggested Trials" tab
+    UI->>Flask: GET /api/patient/matches
+    Flask->>ML: match_patient(conditions, age, gender, patient_id)
+    ML->>ML: _compute_features() x all active trials
+    ML->>ML: RF.predict_proba() → calibrated eligibility prob
+    ML->>ML: combined_score = 0.6×prob + 0.4×match_score
+    ML-->>Flask: top-20 trials sorted by combined_score
+    Flask-->>UI: results array with 24 fields per trial
+
+    Note over Patient,FS: Connect with a hospital
+    Patient->>UI: Click "Connect with Hospital" on a trial card
+    UI->>Flask: GET /api/patient/hospitals-for-trial?trial_id=NCT...
+    Flask->>ML: hospitals_for_trial(trial_id)
+    ML-->>Flask: tiered hospital list (Tier 1..4)
+    Flask-->>UI: hospitals array
+    UI->>UI: Render modal — green section (Tier1) + grey section (Tier2-4)
+    Patient->>UI: Select hospital + enter message + submit
+    UI->>Flask: POST /api/patient/connect
+    Flask->>DB: connection_exists()? if no → create_connection()
+    DB-->>Flask: connection dict (or 409 duplicate)
+    Flask-->>UI: success redirect to connections tab
+
+    Note over Patient,FS: Inbox and messaging
+    Patient->>UI: Click "Inbox" tab
+    UI->>Flask: GET /api/patient/inbox
+    Flask->>DB: get_patient_inbox_threads(patient_id)
+    DB-->>Flask: threads with last_message + unread_count
+    Flask-->>UI: threads array + update badge
+    Patient->>UI: Click "Open" on a thread
+    UI->>Flask: GET /api/patient/connections/{cid}/messages
+    Flask->>DB: mark_messages_read(role=hospital)
+    Flask->>DB: get_connection_messages(cid)
+    Flask-->>UI: messages array
+    Patient->>UI: Type reply + Enter or Send
+    UI->>Flask: POST /api/patient/connections/{cid}/messages
+    Flask->>DB: create_connection_message(role=patient)
+
+    Note over Patient,FS: Document upload
+    Patient->>UI: Select file in Documents section
+    UI->>Flask: POST /api/patient/documents (multipart/form-data)
+    Flask->>Flask: secure_filename, validate extension + 10MB limit
+    Flask->>FS: Save to uploads/patient_docs/{pid}/{doc_id}_filename
+    Flask->>DB: update_patient_profile(documents=[...append])
+    Flask-->>UI: document metadata dict
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     5. HOSPITAL JOURNEY
+     ========================================================= -->
+<section id="s5">
+  <h2>5. Hospital User Journey</h2>
+  <p class="subtitle">
+    Key request-response flows through the hospital portal, from login to connection management and messaging.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    actor Hospital
+    participant UI as hospital.html
+    participant Flask as Flask (app.py)
+    participant DB as database.py
+    participant ML as pipeline.py
+
+    Note over Hospital,ML: Login
+    Hospital->>UI: Enter credentials
+    UI->>Flask: POST /auth/hospital/login
+    Flask->>DB: authenticate_hospital()
+    DB-->>Flask: hospital dict
+    Flask-->>UI: session cookie + hospital JSON
+
+    Note over Hospital,ML: Browse available patients
+    Hospital->>UI: Click "Available Patients" tab (default)
+    UI->>Flask: GET /api/hospital/patients
+    Flask->>DB: get_open_patients_for_hospital(include_connected=False)
+    DB-->>Flask: patients with open_to_trials=1 excluding already-connected
+    Flask-->>UI: patient cards (25 opt-in patients total)
+
+    Note over Hospital,ML: Search by condition
+    Hospital->>UI: Type condition + toggle "include connected"
+    UI->>Flask: GET /api/hospital/patients?condition=diabetes&include_connected=true
+    Flask->>DB: get_open_patients_for_hospital(condition_filter, include_connected=True)
+    Flask-->>UI: filtered patient list
+
+    Note over Hospital,ML: View matched trials
+    Hospital->>UI: Click "My Trials" tab
+    UI->>Flask: GET /api/hospital/trials
+    Flask->>ML: trials_for_hospital(hospital_name, location, research_conditions)
+    ML->>ML: Tier1 — facility name Jaccard >= 0.25 + is_active
+    ML->>ML: Tier2 — same US state + is_active
+    ML->>ML: Tier3 — condition overlap + is_active
+    ML-->>Flask: active trial list with match_tier and match_reason
+    Flask-->>UI: trial cards with status, phase, facility, ClinicalTrials.gov link
+
+    Note over Hospital,ML: Connect with a patient
+    Hospital->>UI: Click "Connect" on a patient card
+    UI->>Flask: POST /api/hospital/connect
+    Flask->>DB: create_connection(initiated_by=hospital)
+    DB-->>Flask: connection dict (or 409 duplicate)
+
+    Note over Hospital,ML: Manage connections
+    Hospital->>UI: Click "My Connections" tab
+    UI->>Flask: GET /api/hospital/connections
+    Flask->>DB: get_hospital_connections(hospital_id)
+    Flask-->>UI: connection table with patient details
+    Hospital->>UI: Click "Accept" / "Reject" / "Complete"
+    UI->>Flask: PUT /api/hospital/connections/{cid}/status
+    Flask->>DB: update_connection_status(cid, status)
+
+    Note over Hospital,ML: Inbox and messaging
+    Hospital->>UI: Click "Inbox" tab
+    UI->>Flask: GET /api/hospital/inbox
+    Flask->>DB: get_hospital_inbox_threads(hospital_id)
+    DB-->>Flask: threads sorted by last_message_at DESC
+    Flask-->>UI: thread list with unread_count, update nav badge
+    Hospital->>UI: Click "Open" on a thread
+    UI->>Flask: GET /api/hospital/connections/{cid}/messages
+    Flask->>DB: mark_messages_read(role=hospital)
+    Flask->>DB: get_connection_messages(cid)
+    Flask-->>UI: messages in chronological order
+    Hospital->>UI: Type reply + Send
+    UI->>Flask: POST /api/hospital/connections/{cid}/messages
+    Flask->>DB: create_connection_message(role=hospital)
+
+    Note over Hospital,ML: Update profile
+    Hospital->>UI: Edit name / location / research conditions
+    UI->>Flask: POST /api/hospital/profile
+    Flask->>DB: update_hospital_profile()
+    Flask-->>UI: updated hospital dict
+    UI->>UI: Update navbar name live (no page reload)
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     6. TIERED MATCHING
+     ========================================================= -->
+<section id="s6">
+  <h2>6. Tiered Matching Logic</h2>
+  <p class="subtitle">
+    Two reverse-matching functions sharing the same 4-tier cascade. Both use
+    <code>_name_tokens()</code> + Jaccard similarity for Tier 1, US state extraction for Tier 2,
+    and condition set intersection for Tier 3.
+  </p>
+  <div class="grid-2">
+    <div>
+      <h3 style="color:#3fb950;margin-bottom:.75rem;font-size:1rem;">
+        hospitals_for_trial(trial_id) — Patient selects a trial
+      </h3>
+      <div class="diagram-wrap">
+        <div class="mermaid">
+flowchart TD
+    START_A["Patient clicks<br/>'Connect with Hospital'<br/>on trial NCTxxxxxx"]
+
+    subgraph T1A["Tier 1 — Verified Site"]
+        C1A["For each hospital in DB:<br/>Jaccard(hospital name tokens,<br/>ANY trial facility name tokens) >= 0.25"]
+        R1A["🟢 match_reason:<br/>'verified site on this trial'"]
+    end
+
+    subgraph T2A["Tier 2 — Same State"]
+        C2A["Hospital state extracted from<br/>'City, ST' location field<br/>== any trial US facility state"]
+        R2A["⬜ match_reason:<br/>'in same state as a trial site'"]
+    end
+
+    subgraph T3A["Tier 3 — Condition Overlap"]
+        C3A["hospital.research_conditions<br/>∩ trial.conditions ≠ empty"]
+        R3A["⬜ match_reason:<br/>'researches related conditions'"]
+    end
+
+    subgraph T4A["Tier 4 — Fallback"]
+        C4A["Trial has no US facility data<br/>all remaining hospitals included"]
+        R4A["⬜ match_reason: ''"]
+    end
+
+    MODAL["Render connect modal<br/>🟢 VERIFIED TRIAL SITES header<br/>⬜ RELATED HOSPITALS header<br/>(Tiers 2–4)"]
+
+    START_A --> T1A --> T2A --> T3A --> T4A --> MODAL
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="color:#79c0ff;margin-bottom:.75rem;font-size:1rem;">
+        trials_for_hospital(name, loc, conditions) — Hospital views My Trials
+      </h3>
+      <div class="diagram-wrap">
+        <div class="mermaid">
+flowchart TD
+    START_B["Hospital opens<br/>'My Trials' tab"]
+
+    subgraph T1B["Tier 1 — Name Matched"]
+        C1B["For each active trial:<br/>Jaccard(hospital name tokens,<br/>trial facility name tokens) >= 0.25<br/>+ is_active = True"]
+        R1B["match_tier: 1<br/>match_reason:<br/>'name matched to trial site'"]
+    end
+
+    subgraph T2B["Tier 2 — Same State"]
+        C2B["Hospital state<br/>== trial US facility state<br/>+ is_active = True"]
+        R2B["match_tier: 2<br/>match_reason:<br/>'in same state as trial site'"]
+    end
+
+    subgraph T3B["Tier 3 — Condition Overlap"]
+        C3B["hospital.research_conditions<br/>∩ trial.conditions ≠ empty<br/>+ is_active = True"]
+        R3B["match_tier: 3<br/>match_reason:<br/>'researches related conditions'"]
+    end
+
+    SORT["Sort by match_tier ASC<br/>cap at top_k=20<br/>Return trial cards with<br/>status · phase · facility · summary"]
+
+    START_B --> T1B --> T2B --> T3B --> SORT
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem">
+    <h3 style="color:#c9d1d9;margin-bottom:.75rem;font-size:1rem;">Shared Helpers</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph TOK["_name_tokens(name)"]
+        TK1["Lowercase all words"]
+        TK2["Remove stopwords:<br/>hospital, medical, center, clinic, university,<br/>health, care, system, institute, general,<br/>regional, national, community, the, of, and, at…"]
+        TK3["Remove words shorter than 3 chars"]
+        TK4["Return frozenset of tokens"]
+        TK1 --> TK2 --> TK3 --> TK4
+    end
+
+    subgraph JAC["Jaccard Similarity"]
+        J1["score = |A ∩ B| / |A ∪ B|"]
+        J2["Best score across ALL<br/>facility names for the trial"]
+        J1 --> J2
+    end
+
+    subgraph STATE["State Extraction"]
+        S1["Parse 'City, ST' location string"]
+        S2["Lookup ST abbreviation<br/>in US_STATE_MAP dict<br/>→ full name e.g. 'Massachusetts'"]
+        S3["Compare against<br/>trial_us_states set<br/>(from trail_facilities.csv)"]
+        S1 --> S2 --> S3
+    end
+
+    TOK --> JAC
+    TOK --> STATE
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     7. FEATURE ENGINEERING
+     ========================================================= -->
+<section id="s7">
+  <h2>7. Feature Engineering — 17 Features</h2>
+  <p class="subtitle">
+    All features are normalised to 0–1. Computed by <code>_compute_features(patient_row, trial_id)</code>
+    in pipeline.py. Used for both training pseudo-labels and inference scoring.
+  </p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart LR
+    INPUT["Patient Profile<br/>+ Trial Profile"]
+
+    subgraph COND_GRP["Condition Overlap (4)"]
+        direction TB
+        CF1["condition_overlap<br/><small>raw count: |patient_conds ∩ trial_conds|</small>"]
+        CF2["jaccard_similarity<br/><small>overlap / union</small>"]
+        CF3["overlap_ratio_trial<br/><small>overlap / |trial_conds|</small>"]
+        CF4["overlap_ratio_patient<br/><small>overlap / |patient_conds|</small>"]
+    end
+
+    subgraph PROF_GRP["Condition Profile (5)"]
+        direction TB
+        PF1["condition_rarity_score<br/><small>mean(1/log2(n_trials_per_cond + 2)), norm 0-1</small>"]
+        PF2["trial_specificity<br/><small>1 / |trial_conds|</small>"]
+        PF3["condition_burden<br/><small>total_patient_conds / 10</small>"]
+        PF4["active_ratio<br/><small>active_conds / total_conds</small>"]
+        PF5["resolved_ratio<br/><small>resolved_conds / total_conds</small>"]
+    end
+
+    subgraph ELIG_GRP["Eligibility (4)"]
+        direction TB
+        EF1["age_distance<br/><small>norm distance outside [min_age, max_age]</small>"]
+        EF2["age_centered<br/><small>position within range, -1 to +1</small>"]
+        EF3["age_compatibility<br/><small>1.0 in range; decays over 30yr gap</small>"]
+        EF4["gender_compatibility<br/><small>1.0 match/ALL; 0.1 mismatch</small>"]
+    end
+
+    subgraph EXT_GRP["External Signals (3)"]
+        direction TB
+        XF1["geo_feasibility<br/><small>1.0 same state · 0.75 other US state · 0.5 no data</small>"]
+        XF2["med_compatibility<br/><small>patient med keywords ∩ trial drug intervention keywords</small>"]
+        XF3["lab_availability<br/><small>patient observation types covered by trial / 20</small>"]
+    end
+
+    subgraph META_GRP["Metadata (1)"]
+        MF1["data_completeness<br/><small>fraction of key fields non-empty<br/>importance: ~0.0 in trained RF</small>"]
+    end
+
+    RF["RandomForest<br/>predict_proba()<br/>→ eligibility_prob"]
+
+    INPUT --> COND_GRP
+    INPUT --> PROF_GRP
+    INPUT --> ELIG_GRP
+    INPUT --> EXT_GRP
+    INPUT --> META_GRP
+
+    COND_GRP --> RF
+    PROF_GRP --> RF
+    ELIG_GRP --> RF
+    EXT_GRP --> RF
+    META_GRP --> RF
+    </div>
+
+    <div class="note" style="margin-top:1rem">
+      <strong>Top features by importance (Random Forest):</strong>
+      age_distance (20.4%) · age_compatibility (16.9%) · gender_compatibility (12.9%) · age_centered (7.9%) ·
+      jaccard_similarity (7.5%) · condition_rarity_score (6.2%) · overlap_ratio_trial (5.2%) · overlap_ratio_patient (5.1%) ·
+      condition_overlap (4.0%) · remaining 8 features (&lt;3% each).
+      <br/><br/>
+      <strong>Note on AUC (0.60):</strong> The 82.1% positive pseudo-label rate makes the classification trivially high-accuracy
+      but limits discriminative power. Raising the label threshold from 0.5 → 0.6 or enforcing equal pos/neg sampling would improve AUC.
+    </div>
+  </div>
+</section>
+
+<footer style="border-top:1px solid #30363d;margin-top:3rem;padding-top:1.5rem;color:#8b949e;font-size:0.8rem;text-align:center">
+  Second Life · DSCI 5260 · Group 7 · Generated 2026-04-25
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor:        '#1f6feb',
+      primaryTextColor:    '#c9d1d9',
+      primaryBorderColor:  '#388bfd',
+      lineColor:           '#58a6ff',
+      secondaryColor:      '#161b22',
+      tertiaryColor:       '#1c2128',
+      background:          '#0d1117',
+      mainBkg:             '#161b22',
+      nodeBorder:          '#30363d',
+      clusterBkg:          '#13161b',
+      clusterBorder:       '#30363d',
+      titleColor:          '#79c0ff',
+      edgeLabelBackground: '#161b22',
+      fontFamily:          'system-ui, sans-serif',
+    },
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels:  true,
+      curve:       'basis',
+      padding:     20,
+    },
+    sequence: {
+      useMaxWidth:    false,
+      mirrorActors:   false,
+      messageAlign:   'center',
+      actorFontFamily:'system-ui, sans-serif',
+      noteFontFamily: 'system-ui, sans-serif',
+    },
+    er: {
+      useMaxWidth: false,
+    }
+  });
+</script>
+</body>
+</html>
