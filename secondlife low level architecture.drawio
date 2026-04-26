@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ============================================================
+         TITLE
+         ============================================================ -->
+    <mxCell id="TITLE" value="Second Life — System Architecture  |  DSCI 5260 · Group 7  |  AI-Powered Clinical Trial Matching" style="text;html=1;strokeColor=none;fillColor=none;fontSize=16;fontStyle=1;fontColor=#003366;align=center;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1078" width="1680" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         LAYER 1 — BROWSER
+         ============================================================ -->
+    <mxCell id="L1" value="🌐  Browser  (Client)" style="swimlane;startSize=32;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;fontColor=#003366;swimlaneLine=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="10" width="1680" height="235" as="geometry" />
+    </mxCell>
+
+    <!-- Patient Portal -->
+    <mxCell id="PPG" value="Patient Portal — patient.html" style="swimlane;startSize=24;fillColor=#cce5ff;strokeColor=#0066cc;fontSize=11;fontStyle=1;" vertex="1" parent="L1">
+      <mxGeometry x="20" y="37" width="574" height="183" as="geometry" />
+    </mxCell>
+    <mxCell id="PP1" value="My Profile&#xa;conditions · meds&#xa;documents upload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f4fd;strokeColor=#0066cc;fontSize=9;" vertex="1" parent="PPG">
+      <mxGeometry x="10" y="30" width="120" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="PP2" value="Suggested Trials&#xa;AI-ranked top-20&#xa;combined_score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f4fd;strokeColor=#0066cc;fontSize=9;" vertex="1" parent="PPG">
+      <mxGeometry x="140" y="30" width="120" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="PP3" value="My Connections&#xa;status · chat modal&#xa;view history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f4fd;strokeColor=#0066cc;fontSize=9;" vertex="1" parent="PPG">
+      <mxGeometry x="270" y="30" width="120" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="PP4" value="Inbox 🔴&#xa;unread count badge&#xa;all message threads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f4fd;strokeColor=#0066cc;fontSize=9;" vertex="1" parent="PPG">
+      <mxGeometry x="400" y="30" width="120" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="PP_NOTE" value="Bootstrap 5.3 dark SPA  ·  escH() / escA() XSS guards  ·  DOM API only (no innerHTML for user data)  ·  startStatusPoll() 5s interval  ·  cookie session auth" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#555;align=left;" vertex="1" parent="PPG">
+      <mxGeometry x="10" y="106" width="554" height="16" as="geometry" />
+    </mxCell>
+
+    <!-- Landing Page -->
+    <mxCell id="LP" value="landing.html&#xa;&#xa;Login · Register&#xa;Patient &amp; Hospital" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#3385ff;fontSize=10;fontStyle=1;" vertex="1" parent="L1">
+      <mxGeometry x="651" y="70" width="158" height="95" as="geometry" />
+    </mxCell>
+
+    <!-- Hospital Portal -->
+    <mxCell id="HPG" value="Hospital Portal — hospital.html" style="swimlane;startSize=24;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=11;fontStyle=1;" vertex="1" parent="L1">
+      <mxGeometry x="866" y="37" width="804" height="183" as="geometry" />
+    </mxCell>
+    <mxCell id="HP1" value="Available&#xa;Patients&#xa;opt-in only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="10" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP2" value="Search by&#xa;Condition&#xa;incl. connected" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="133" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP3" value="My Trials&#xa;3-tier active&#xa;match" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="256" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP4" value="Inbox 🔴&#xa;unread badge&#xa;message threads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="379" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP5" value="My&#xa;Connections&#xa;accept / reject" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="502" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP6" value="My Profile&#xa;name · location&#xa;conditions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="HPG">
+      <mxGeometry x="625" y="30" width="113" height="65" as="geometry" />
+    </mxCell>
+    <mxCell id="HP_NOTE" value="Bootstrap 5.3 dark SPA  ·  escH() / escA() XSS guards  ·  navbar name updates live on profile save  ·  Search includes already-connected toggle" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#555;align=left;" vertex="1" parent="HPG">
+      <mxGeometry x="10" y="106" width="784" height="16" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         LAYER 2 — FLASK SERVER
+         ============================================================ -->
+    <mxCell id="L2" value="⚙️  Flask Server — app.py  (port 5000)  ·  TEMPLATES_AUTO_RELOAD=True  ·  MAX_CONTENT_LENGTH=10 MB  ·  server-side cookie sessions" style="swimlane;startSize=32;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;fontColor=#3d0066;" vertex="1" parent="1">
+      <mxGeometry x="10" y="255" width="1680" height="280" as="geometry" />
+    </mxCell>
+
+    <mxCell id="AR" value="🔐 Auth Routes&#xa;(no session required)&#xa;&#xa;POST /auth/patient/register&#xa;POST /auth/patient/login&#xa;POST /auth/hospital/register&#xa;POST /auth/hospital/login&#xa;POST /auth/logout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#9673a6;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="20" y="40" width="215" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="PAR" value="👤 Patient API&#xa;(patient session)&#xa;&#xa;GET | POST  /api/patient/profile&#xa;GET  /api/patient/matches&#xa;GET | POST | DELETE&#xa;     /api/patient/interest&#xa;GET  /api/patient/connections&#xa;POST  /api/patient/connect&#xa;GET  /api/patient/hospitals-for-trial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#0066cc;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="248" y="40" width="250" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="HAR" value="🏥 Hospital API&#xa;(hospital session)&#xa;&#xa;GET | POST  /api/hospital/profile&#xa;GET  /api/hospital/patients&#xa;GET  /api/hospital/trials&#xa;POST  /api/hospital/connect&#xa;GET  /api/hospital/connections&#xa;PUT  /api/hospital/connections/&#xa;       &lt;cid&gt;/status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="511" y="40" width="265" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="MR" value="💬 Messaging + Inbox&#xa;&#xa;GET | POST&#xa;  /api/patient/connections/&lt;cid&gt;/messages&#xa;GET  /api/patient/inbox&#xa;&#xa;GET | POST&#xa;  /api/hospital/connections/&lt;cid&gt;/messages&#xa;GET  /api/hospital/inbox&#xa;&#xa;→ mark_messages_read() on GET&#xa;→ get_*_inbox_threads() + unread_count" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="789" y="40" width="280" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="DR" value="📄 Documents&#xa;&#xa;GET  /api/patient/documents&#xa;POST  /api/patient/documents&#xa;  → multipart/form-data&#xa;  → secure_filename()&#xa;  → ALLOWED: .pdf .docx .doc&#xa;             .txt .png .jpg .jpeg&#xa;  → max 10 MB&#xa;DELETE  /api/patient/documents/&lt;id&gt;&#xa;GET  /api/patient/documents/&lt;id&gt;/download" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="1082" y="40" width="255" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="SR" value="🔧 Shared + Boot Thread&#xa;&#xa;GET /api/status&#xa;  → ready: true|false + stats&#xa;GET /api/conditions/autocomplete&#xa;&#xa;─────────────────────&#xa;🚀 Boot Thread (background)&#xa;① db.init_db()&#xa;  → create 5 tables&#xa;  → seed 25 patients + 3 hospitals&#xa;② pipeline.load()&#xa;  → read 11 CSV files into memory&#xa;③ pipeline.train()&#xa;  → build RF or load model_cache.pkl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L2">
+      <mxGeometry x="1350" y="40" width="310" height="220" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         LAYER 3 — BUSINESS LOGIC
+         ============================================================ -->
+    <mxCell id="L3" value="🧠  Business Logic" style="swimlane;startSize=32;fillColor=#fff8e1;strokeColor=#d6a000;fontSize=14;fontStyle=1;fontColor=#5a3e00;" vertex="1" parent="1">
+      <mxGeometry x="10" y="545" width="1680" height="300" as="geometry" />
+    </mxCell>
+
+    <!-- database.py -->
+    <mxCell id="DBG" value="database.py — SQLite Layer" style="swimlane;startSize=24;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=11;fontStyle=1;" vertex="1" parent="L3">
+      <mxGeometry x="20" y="38" width="705" height="252" as="geometry" />
+    </mxCell>
+    <mxCell id="T1" value="patient_accounts&#xa;25 rows&#xa;5 demo + 20 Synthea" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="DBG">
+      <mxGeometry x="10" y="32" width="122" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="T2" value="hospital_accounts&#xa;3 rows&#xa;mgh, cleveland, jhopkins" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="DBG">
+      <mxGeometry x="144" y="32" width="122" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="T3" value="patient_trial_interests&#xa;UNIQUE(patient_id,&#xa;trial_id)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="DBG">
+      <mxGeometry x="278" y="32" width="122" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="T4" value="connections&#xa;UNIQUE(patient, hospital,&#xa;COALESCE(trial,''))" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="DBG">
+      <mxGeometry x="412" y="32" width="132" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="T5" value="connection_messages&#xa;sender_role: patient|hospital&#xa;is_read: 0 | 1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontSize=9;" vertex="1" parent="DBG">
+      <mxGeometry x="556" y="32" width="132" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="DBF1" value="Key functions:  authenticate_patient / authenticate_hospital  ·  update_patient_profile / update_hospital_profile  ·  get_open_patients_for_hospital(condition, include_connected)  ·  create_connection / connection_exists  ·  update_connection_status  ·  create_connection_message  ·  mark_messages_read  ·  get_hospital_inbox_threads / get_patient_inbox_threads  ·  _seed_dataset_patients(20)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#333;align=left;" vertex="1" parent="DBG">
+      <mxGeometry x="10" y="112" width="685" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="DBF2" value="JSON columns (conditions, medications, documents, research_conditions) stored as TEXT  ·  parsed by _row_to_dict()  ·  passwords: SHA-256 via _hash()  ·  idx_conn_unique handles NULL trial_id  ·  idx_msgs_conn on (connection_id, created_at)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#555;align=left;" vertex="1" parent="DBG">
+      <mxGeometry x="10" y="148" width="685" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- pipeline.py -->
+    <mxCell id="PLG" value="pipeline.py — SecondLifePipeline (ML Engine)" style="swimlane;startSize=24;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="L3">
+      <mxGeometry x="745" y="38" width="925" height="252" as="geometry" />
+    </mxCell>
+    <mxCell id="PL1" value="load()&#xa;Reads 11 CSV files → memory&#xa;trial_profiles · active_trial_ids&#xa;trial_us_states · facility_tokens&#xa;drug_keywords · summaries&#xa;patient_conditions · meds · labs&#xa;~2–3 min on first boot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="PLG">
+      <mxGeometry x="10" y="32" width="165" height="115" as="geometry" />
+    </mxCell>
+    <mxCell id="PL2" value="train()&#xa;3000 patients × 30 trials&#xa;_compute_features() 17 feats&#xa;pseudo-label: 6-feat weighted score&#xa;GroupShuffleSplit 80/20 (patient-level)&#xa;RandomForest n=200, depth=12&#xa;CalibratedClassifierCV isotonic cv=3&#xa;→ save model_cache.pkl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="PLG">
+      <mxGeometry x="188" y="32" width="180" height="115" as="geometry" />
+    </mxCell>
+    <mxCell id="PL3" value="match_patient()&#xa;Input: conditions, age,&#xa;        gender, patient_id&#xa;Scores all active trials&#xa;combined = 0.6 × RF_prob&#xa;          + 0.4 × match_score&#xa;Returns top-20 ranked trials" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="PLG">
+      <mxGeometry x="382" y="32" width="170" height="115" as="geometry" />
+    </mxCell>
+    <mxCell id="PL4" value="trials_for_hospital()&#xa;Input: name, location,&#xa;        research_conditions&#xa;Tier1: facility Jaccard ≥ 0.25&#xa;Tier2: same US state&#xa;Tier3: condition overlap&#xa;Active-only filter every tier" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="PLG">
+      <mxGeometry x="566" y="32" width="165" height="115" as="geometry" />
+    </mxCell>
+    <mxCell id="PL5" value="hospitals_for_trial()&#xa;Input: trial_id&#xa;Tier1: Jaccard ≥ 0.25 → 🟢&#xa;Tier2: same state → ⬜&#xa;Tier3: cond overlap → ⬜&#xa;Tier4: fallback → ⬜&#xa;Modal: green vs grey sections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="PLG">
+      <mxGeometry x="745" y="32" width="165" height="115" as="geometry" />
+    </mxCell>
+    <mxCell id="PLM" value="17 Features: condition_overlap · jaccard_similarity · overlap_ratio_trial · overlap_ratio_patient · condition_rarity_score · trial_specificity · condition_burden · active_ratio · resolved_ratio · age_distance · age_centered · age_compatibility · gender_compatibility · geo_feasibility · med_compatibility · lab_availability · data_completeness" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#333;align=left;" vertex="1" parent="PLG">
+      <mxGeometry x="10" y="158" width="905" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="PLM2" value="AUC-ROC: 0.60  ·  Accuracy: 85.1%  ·  F1: 0.917  ·  Precision: 0.852  ·  Recall: 0.993  ·  90,994 training pairs  ·  82.1% pseudo-label positive rate  ·  GroupShuffleSplit prevents patient-level data leakage" style="text;html=1;strokeColor=none;fillColor=none;fontSize=8;fontColor=#555;align=left;" vertex="1" parent="PLG">
+      <mxGeometry x="10" y="182" width="905" height="20" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         LAYER 4 — STORAGE
+         ============================================================ -->
+    <mxCell id="L4" value="💾  Storage" style="swimlane;startSize=32;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;fontColor=#333;" vertex="1" parent="1">
+      <mxGeometry x="10" y="855" width="1680" height="215" as="geometry" />
+    </mxCell>
+
+    <mxCell id="S1" value="secondlife.db&#xa;SQLite file&#xa;5 tables · auto-created&#xa;on init_db()" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#d5e8d4;strokeColor=#5b9e5b;fontStyle=1;fontSize=10;" vertex="1" parent="L4">
+      <mxGeometry x="75" y="45" width="155" height="120" as="geometry" />
+    </mxCell>
+
+    <mxCell id="S2" value="model_cache.pkl&#xa;RandomForest +&#xa;CalibratedClassifierCV&#xa;delete to force retrain" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=10;" vertex="1" parent="L4">
+      <mxGeometry x="325" y="45" width="155" height="120" as="geometry" />
+    </mxCell>
+
+    <mxCell id="S3" value="uploads/patient_docs/&#xa;&lt;patient_id&gt;/&#xa;&lt;doc_id&gt;_filename&#xa;10 MB max · auto-created" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#cce5ff;strokeColor=#0066cc;fontStyle=1;fontSize=10;" vertex="1" parent="L4">
+      <mxGeometry x="575" y="45" width="155" height="120" as="geometry" />
+    </mxCell>
+
+    <mxCell id="S4" value="Synthea Patient CSVs&#xa;&#xa;patients_details.csv&#xa;  265,893 patients · demographics&#xa;final_patients_conditions.csv&#xa;  967k rows · 106 conditions&#xa;patients_medications.csv&#xa;  213,182 patients&#xa;patients_observations.csv&#xa;  23,231 patients with lab data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#5b9e5b;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L4">
+      <mxGeometry x="855" y="38" width="275" height="158" as="geometry" />
+    </mxCell>
+
+    <mxCell id="S5" value="ClinicalTrials.gov / AACT CSVs&#xa;&#xa;trail_studies.csv — 65k recruiting trials&#xa;trail_conditions.csv — 34k with conditions&#xa;trail_eligibilities.csv — age · gender&#xa;trail_facilities.csv — 189k with US geo&#xa;trail_interventions.csv — 196k with drugs&#xa;trail_brief_summaries.csv — summaries&#xa;trail_keywords.csv — keyword index" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d79b00;fontSize=9;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="L4">
+      <mxGeometry x="1230" y="38" width="310" height="158" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         LEGEND
+         ============================================================ -->
+    <mxCell id="LEG" value="Legend" style="swimlane;startSize=22;fillColor=#ffffff;strokeColor=#999999;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1085" width="1680" height="0" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================
+         ARROWS — DATA FLOW
+         ============================================================ -->
+
+    <!-- Patient Portal → Patient API (REST/JSON) -->
+    <mxCell id="E1" value="REST/JSON" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#0066cc;strokeWidth=2;fontStyle=2;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PPG" target="PAR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Patient Portal → Messaging/Inbox (dashed) -->
+    <mxCell id="E2" value="chat / inbox" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d6b656;strokeWidth=1.5;dashed=1;fontStyle=2;fontSize=8;" edge="1" source="PP4" target="MR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Patient Portal → Documents (dashed) -->
+    <mxCell id="E3" value="upload / download" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;dashed=1;fontStyle=2;fontSize=8;" edge="1" source="PP1" target="DR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Landing → Auth -->
+    <mxCell id="E4" value="login / register" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#9673a6;strokeWidth=2;fontStyle=2;fontSize=8;" edge="1" source="LP" target="AR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Hospital Portal → Hospital API -->
+    <mxCell id="E5" value="REST/JSON" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#5b9e5b;strokeWidth=2;fontStyle=2;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="HPG" target="HAR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Hospital Portal → Messaging (dashed) -->
+    <mxCell id="E6" value="chat / inbox" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d6b656;strokeWidth=1.5;dashed=1;fontStyle=2;fontSize=8;" edge="1" source="HP4" target="MR" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Auth → DB -->
+    <mxCell id="E7" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#9673a6;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.1;entryY=0;entryDx=0;entryDy=0;" edge="1" source="AR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Patient API → DB -->
+    <mxCell id="E8" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#0066cc;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PAR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Patient API → match_patient() -->
+    <mxCell id="E9" value="match_patient()" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=2;fontStyle=3;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PAR" target="PL3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Patient API → hospitals_for_trial() -->
+    <mxCell id="E10" value="hospitals_for_trial()" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PAR" target="PL5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Hospital API → DB -->
+    <mxCell id="E11" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#5b9e5b;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="HAR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Hospital API → trials_for_hospital() -->
+    <mxCell id="E12" value="trials_for_hospital()" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=2;fontStyle=3;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="HAR" target="PL4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Messaging → DB (connections + messages tables) -->
+    <mxCell id="E13" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d6b656;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" source="MR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Documents → DB (updates patient documents JSON) -->
+    <mxCell id="E14" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.88;entryY=0;entryDx=0;entryDy=0;" edge="1" source="DR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Documents → File Storage -->
+    <mxCell id="E15" value="file I/O" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;" edge="1" source="DR" target="S3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Boot Thread → DB (seed data) -->
+    <mxCell id="E16" value="① seed" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#666;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" source="SR" target="DBG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Boot Thread → Pipeline (load + train) -->
+    <mxCell id="E17" value="② load  ③ train" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#666;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" source="SR" target="PLG" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- DB → secondlife.db file -->
+    <mxCell id="E18" value="read / write" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#5b9e5b;strokeWidth=2;fontStyle=2;fontSize=8;" edge="1" source="DBG" target="S1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Pipeline → model_cache.pkl -->
+    <mxCell id="E19" value="load / save" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=2;fontStyle=2;fontSize=8;" edge="1" source="PLG" target="S2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- pipeline.load() → Synthea CSVs -->
+    <mxCell id="E20" value="read on boot" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#5b9e5b;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PL1" target="S4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- pipeline.load() → Trial CSVs -->
+    <mxCell id="E21" value="read on boot" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;dashed=1;fontStyle=3;fontSize=8;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="PL1" target="S5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

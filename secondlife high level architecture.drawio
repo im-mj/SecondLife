@@ -1,0 +1,163 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="E15GttQApXdkw6PukwBz" name="Page-1">
+    <mxGraphModel dx="2322" dy="2022" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="userGroup" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF4FF;strokeColor=#C7D8FF;strokeWidth=3;arcSize=18;opacity=70;fontSize=12;" value="" vertex="1">
+          <mxGeometry height="356.6470588235295" width="1824.563758389262" x="142.5503355704698" y="18.999411764705883" as="geometry" />
+        </mxCell>
+        <mxCell id="bg1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DCEBFF;strokeColor=none;opacity=55;" value="" vertex="1">
+          <mxGeometry height="394.59" width="383.76" x="1676.24" y="-110" as="geometry" />
+        </mxCell>
+        <mxCell id="bg2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DFF7EC;strokeColor=none;opacity=60;" value="" vertex="1">
+          <mxGeometry height="364.24" width="367.32" y="815.76" as="geometry" />
+        </mxCell>
+        <mxCell id="bg3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1D7;strokeColor=none;opacity=65;" value="" vertex="1">
+          <mxGeometry height="273.1764705882353" width="237.98657718120808" x="1464.6979865771812" y="815.7647058823532" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=40;fontStyle=1;fontColor=#152641;align=center;verticalAlign=middle;" value="Second Life - High-Level Architecture" vertex="1">
+          <mxGeometry height="60.70588235294119" width="1216.3758389261745" x="446.64429530201346" y="-106.96470588235294" as="geometry" />
+        </mxCell>
+        <mxCell id="sec1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#61728E;letterSpacing=1;" value="USER EXPERIENCE" vertex="1">
+          <mxGeometry height="36.423529411764704" width="224.76510067114094" x="261.5436241610738" y="49.35294117647058" as="geometry" />
+        </mxCell>
+        <mxCell id="sec3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#61728E;letterSpacing=1;" value="DATA AND INTELLIGENCE" vertex="1">
+          <mxGeometry height="36.423529411764704" width="290.8724832214765" x="119.99624161073825" y="703.4629411764703" as="geometry" />
+        </mxCell>
+        <mxCell id="patientCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF4FF;strokeColor=#5C8CF0;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="197.29411764705884" width="661.0738255033558" x="248.32214765100673" y="87.29411764705884" as="geometry" />
+        </mxCell>
+        <mxCell id="patientBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#5C8CF0;strokeColor=#5C8CF0;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="P" vertex="1">
+          <mxGeometry height="72.85" width="74.67" x="290" y="132.82" as="geometry" />
+        </mxCell>
+        <mxCell id="patientTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#152641;align=left;" value="Patient Portal" vertex="1">
+          <mxGeometry height="51.60000000000001" width="343.758389261745" x="387.1476510067114" y="144.96470588235297" as="geometry" />
+        </mxCell>
+        <mxCell id="patientBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="Profile, suggested trials, saved interests&lt;br&gt;Connections, inbox chat, document uploads" vertex="1">
+          <mxGeometry height="69.81176470588235" width="436.30872483221475" x="387.1476510067114" y="205.67058823529413" as="geometry" />
+        </mxCell>
+        <mxCell id="hospitalCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF8F2;strokeColor=#41A56C;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="197.29411764705884" width="661.0738255033558" x="1200.268456375839" y="87.29411764705884" as="geometry" />
+        </mxCell>
+        <mxCell id="hospitalBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#41A56C;strokeColor=#41A56C;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="H" vertex="1">
+          <mxGeometry height="72.85" width="76.62" x="1240" y="132.82" as="geometry" />
+        </mxCell>
+        <mxCell id="hospitalTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#152641;align=left;" value="Hospital Portal" vertex="1">
+          <mxGeometry height="51.60000000000001" width="370.2013422818792" x="1339.0939597315437" y="144.96470588235297" as="geometry" />
+        </mxCell>
+        <mxCell id="hospitalBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="Available patients, search, and trial view&lt;br&gt;Connections, inbox chat, and profile tools" vertex="1">
+          <mxGeometry height="69.81176470588235" width="462.751677852349" x="1339.0939597315437" y="205.67058823529413" as="geometry" />
+        </mxCell>
+        <mxCell id="flaskCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3EEFF;strokeColor=#7A5CD3;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="265.5882352941176" width="819.7315436241612" x="644.9664429530202" y="375.6470588235295" as="geometry" />
+        </mxCell>
+        <mxCell id="flaskBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#7A5CD3;strokeColor=#7A5CD3;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="W" vertex="1">
+          <mxGeometry height="78.92" width="81.89" x="700" y="419.38" as="geometry" />
+        </mxCell>
+        <mxCell id="flaskTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=30;fontStyle=1;fontColor=#152641;align=left;" value="Flask Web Application" vertex="1">
+          <mxGeometry height="57.67058823529412" width="502.41610738255036" x="814.203422818792" y="430.00352941176465" as="geometry" />
+        </mxCell>
+        <mxCell id="flaskBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="Renders patient and hospital pages&lt;br&gt;Handles login, APIs, sessions, and requests&lt;br&gt;Coordinates matching, inbox, connections, and uploads" vertex="1">
+          <mxGeometry height="80.8" width="402.99" x="797.01" y="509.2" as="geometry" />
+        </mxCell>
+        <mxCell id="dbCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF9F3;strokeColor=#39A66E;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="273.1764705882353" width="502.41610738255036" x="155.7718120805369" y="770.2352941176471" as="geometry" />
+        </mxCell>
+        <mxCell id="dbBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#39A66E;strokeColor=#39A66E;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="D" vertex="1">
+          <mxGeometry height="72.85" width="78.73" x="195.44" y="815.77" as="geometry" />
+        </mxCell>
+        <mxCell id="dbTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#152641;align=left;" value="App Database + Files" vertex="1">
+          <mxGeometry height="51.60000000000001" width="383.4228187919463" x="289.9980536912752" y="826.3858823529412" as="geometry" />
+        </mxCell>
+        <mxCell id="dbBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="SQLite for accounts, connections, and messages&lt;br&gt;Uploads folder for patient documents&lt;br&gt;Keeps local portal state for the demo" vertex="1">
+          <mxGeometry height="109.27058823529411" width="383.4228187919463" x="202.00993288590604" y="910.0011764705881" as="geometry" />
+        </mxCell>
+        <mxCell id="mlCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF5E5;strokeColor=#DD8E1D;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="273.1764705882353" width="502.41610738255036" x="803.6241610738255" y="770.2352941176471" as="geometry" />
+        </mxCell>
+        <mxCell id="mlBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DD8E1D;strokeColor=#DD8E1D;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="M" vertex="1">
+          <mxGeometry height="72.85" width="77.46" x="852.54" y="815.76" as="geometry" />
+        </mxCell>
+        <mxCell id="mlTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#152641;align=left;" value="Trial Matching Engine" vertex="1">
+          <mxGeometry height="51.6" width="310" x="960" y="826.39" as="geometry" />
+        </mxCell>
+        <mxCell id="mlBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="Pipeline loads patient and trial datasets&lt;br&gt;Feature engineering + Random Forest model&lt;br&gt;Returns ranked trial matches and hospital trial lists" vertex="1">
+          <mxGeometry height="109.27058823529411" width="403.255033557047" x="852.5422818791948" y="910.0011764705881" as="geometry" />
+        </mxCell>
+        <mxCell id="srcCard" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF9F9;strokeColor=#2D9FA1;strokeWidth=3;arcSize=18;shadow=1;" value="" vertex="1">
+          <mxGeometry height="273.1764705882353" width="502.41610738255036" x="1451.476510067114" y="770.2352941176471" as="geometry" />
+        </mxCell>
+        <mxCell id="srcBadge" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#2D9FA1;strokeColor=#2D9FA1;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="S" vertex="1">
+          <mxGeometry height="72.85" width="78.4" x="1491.61" y="815.76" as="geometry" />
+        </mxCell>
+        <mxCell id="srcTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#152641;align=left;" value="Source Data" vertex="1">
+          <mxGeometry height="51.60000000000001" width="290.8724832214765" x="1600.0027516778523" y="826.3858823529412" as="geometry" />
+        </mxCell>
+        <mxCell id="srcBody" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontColor=#5E708C;align=left;verticalAlign=top;" value="Synthea patient CSVs&lt;br&gt;ClinicalTrials.gov / AACT trial CSVs&lt;br&gt;MIMIC demo data for validation" vertex="1">
+          <mxGeometry height="109.27058823529411" width="383.4228187919463" x="1507.4546308724832" y="897.7211764705881" as="geometry" />
+        </mxCell>
+        <mxCell id="lblUser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;fontSize=18;fontStyle=1;fontColor=#5C6E89;align=center;verticalAlign=middle;" value="user requests" vertex="1">
+          <mxGeometry height="48.56470588235294" width="156.01342281879195" x="976.8232214765102" y="287.6205882352941" as="geometry" />
+        </mxCell>
+        <mxCell id="lblRead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;fontSize=18;fontStyle=1;fontColor=#5C6E89;align=center;verticalAlign=middle;" value="read / write" vertex="1">
+          <mxGeometry height="48.56470588235294" width="145.43624161073825" x="439.9987919463087" y="660.0011764705882" as="geometry" />
+        </mxCell>
+        <mxCell id="lblMatch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;fontSize=18;fontStyle=1;fontColor=#5C6E89;align=center;verticalAlign=middle;" value="match" vertex="1">
+          <mxGeometry height="48.56470588235294" width="105.7718120805369" x="930.0036912751677" y="690.0011764705882" as="geometry" />
+        </mxCell>
+        <mxCell id="lblRank" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;fontSize=18;fontStyle=1;fontColor=#5C6E89;align=center;verticalAlign=middle;" value="ranked results" vertex="1">
+          <mxGeometry height="48.56470588235294" width="166.59060402684565" x="1150.029932885906" y="689.9982352941176" as="geometry" />
+        </mxCell>
+        <mxCell id="lblFeed" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;fontSize=18;fontStyle=1;fontColor=#5C6E89;align=center;verticalAlign=middle;" value="data feed" vertex="1">
+          <mxGeometry height="48.56470588235294" width="137.50335570469798" x="1633.9364429530203" y="697.3929411764708" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="patientCard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;" target="flaskCard" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="320" />
+              <mxPoint x="730" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="hospitalCard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;" target="flaskCard" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1380" y="330" />
+              <mxPoint x="1380" y="330" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="flaskCard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;" target="mlCard" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="srcCard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;" target="mlCard" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="mlCard" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;" target="flaskCard" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1130" y="700" />
+              <mxPoint x="1130" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="footer" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#667892;align=center;" value="FLOW: portals -&amp;gt; Flask app -&amp;gt; matching engine -&amp;gt; recommendations, with app state stored in SQLite" vertex="1">
+          <mxGeometry height="36.423529411764704" width="1322.1476510067116" x="393.758389261745" y="1113.2235294117647" as="geometry" />
+        </mxCell>
+        <mxCell id="sec2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#61728E;letterSpacing=1;" value="APPLICATION LAYER" vertex="1">
+          <mxGeometry height="36.423529411764704" width="251.20805369127518" x="499.9986577181208" y="319.99823529411765" as="geometry" />
+        </mxCell>
+        <mxCell id="7qRbrwoMCzgDvgHPFRhy-5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#42536F;strokeWidth=3;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dbCard" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="407" y="550" />
+            </Array>
+            <mxPoint x="640" y="550" as="sourcePoint" />
+            <mxPoint x="400" y="709" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
