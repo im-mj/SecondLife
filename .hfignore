@@ -1,0 +1,16 @@
+.git/
+.claude/
+__pycache__/
+.venv/
+.python_packages/
+.tmp/
+
+Final Clinical Trails Data/
+Final Patients Synthea Data/
+mimic-iv-clinical-database-demo-2.2/
+*.zip
+
+server.log
+*.log
+*.tmp
+UI/

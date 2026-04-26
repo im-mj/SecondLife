@@ -9,8 +9,11 @@ Assignment 5/
 Code/
 Final Clinical Trails Data/
 Final Patients Synthea Data/
+Final Clinical Trails Data.zip
+Final Patients Synthea Data.zip
 mimic-iv-clinical-database-demo-2.2/
 Visualizations/
 model_cache.pkl
 Screenshot *.png
 .gitattributes
+.hf_space_build/

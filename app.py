@@ -752,8 +752,9 @@ def api_conditions_autocomplete():
 # Main
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     print("=" * 60)
     print(" Second Life — Clinical Trial Matching")
-    print(" http://localhost:5000")
+    print(f" http://localhost:{port}")
     print("=" * 60)
-    app.run(debug=False, port=5000, use_reloader=False)
+    app.run(host="0.0.0.0", debug=False, port=port, use_reloader=False)
