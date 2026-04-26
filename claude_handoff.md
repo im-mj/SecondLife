@@ -1,111 +1,65 @@
 # Claude Handoff
 
-## Current State
+## Current App Shape
 
-This project is a Flask app for matching patients to clinical trials using Synthea patient data, ClinicalTrials.gov / AACT trial data, and MIMIC-IV demo data for validation.
+Multi-page Flask app. All files committed + local session changes applied.
 
-The current main entry points are:
+Active runtime files:
 
-- `app.py`: Flask server and API routes
-- `pipeline.py`: data loading, feature engineering, model training, and matching
-- `templates/index.html`: frontend UI
-- `llm.md`: project reference / architecture notes
+- `app.py`: Flask routes and portal/API logic
+- `pipeline.py`: data loading, feature engineering, model training, trial matching
+- `database.py`: SQLite accounts, interests, connections
+- `templates/landing.html`: login / registration
+- `templates/patient.html`: patient portal
+- `templates/hospital.html`: hospital portal
 
-## What Was Added / Improved
+`templates/index.html` deleted.
 
-The current `pipeline.py` is beyond the earlier basic condition-age-gender version. It now loads and uses:
+## Status: All Fixes Complete
 
-- patient conditions
-- patient demographics
-- patient medications
-- patient observations / labs
-- trial conditions
-- trial eligibilities
-- trial studies
-- trial facilities
-- trial summaries
-- trial interventions
-- trial countries
-- trial keywords
+The following work is done and local (not yet committed to Git):
 
-The feature set is currently 17 features, including:
+### From Previous Session (before rate limit)
 
-- condition overlap and similarity
-- age compatibility
-- gender compatibility
-- condition rarity
-- trial specificity
-- medication compatibility
-- lab availability
-- geo feasibility
+1. Hospital suggestion tiered logic (Tier 1 facility-name Jaccard, Tier 2 same-state, Tier 3 condition overlap, Tier 4 fallback)
+2. Duplicate connection prevention (schema UNIQUE + COALESCE index)
+3. Hospital patient feed excludes already-connected patients
+4. Demo patient seeded with `open_to_trials = 1`
+5. Hospital profile editing tab (name, location, research conditions)
+6. Patient-facing model disclaimer on trial results
+7. Trial site info (lead site + location) surfaced in patient UI
+8. Hospital registration collects `research_conditions`
 
-The model cache on disk matches the current 17-feature schema.
+### From Current Session
 
-## Current Review Findings
+9. **Patient connect modal**: Tier 1 hospitals shown under "Verified Trial Sites" (green header); Tiers 2/3/4 shown under "Related Hospitals — not confirmed trial sites" (grey header). Two visually separated sections.
+10. **hospital.html bug fix**: `btn-close-white` → `btn-close` on `bg-info` profile condition tags (white X was invisible on light-blue background).
+11. **landing.html**: Enter key now submits login/register forms (all username + password inputs).
+12. **patient.html**: System status banner auto-clears — polls `/api/status` every 5s until pipeline is ready, then stops.
 
-These are the main issues identified in the current codebase:
+## Decision Log
 
-1. `patient_id` is not passed from `app.py` into `pipeline.match_patient()` for patient-mode searches.
-   - This means the new patient-specific medication and lab features do not activate in the main UI flow.
+**Hospital matching mode: BROAD**
+- Tier 1 = verified site (Jaccard name match ≥ 0.25)
+- Tiers 2+3 = related hospitals (same state / condition overlap)
+- Visual separation in modal so user sees which is which
+- Reason: safer for demo — modal won't be empty; stronger matches still shown first
 
-2. The new real-data features are not reflected in the pseudo-label generation.
-   - Training labels still only depend on age, gender, and condition overlap.
-   - As a result, features like medication compatibility, lab availability, and geo feasibility have very low practical influence.
+## Known Limitation (not a bug, by design)
 
-3. Hospital-aware matching is still not truly implemented.
-   - Trial facility data is displayed, but ranking is not based on patient-to-hospital distance, preferred hospital, or same-hospital filtering.
-   - `geo_feasibility` is currently a trial-country heuristic, not a patient-to-site match.
+Model trains on synthetic/rule-based labels. Disclaimer shown in UI. Real fix requires clinician-reviewed labels or historical screening decisions — out of scope for DSCI 5260.
 
-4. The frontend manual condition input is fragile.
-   - It uses inline `onclick` interpolation for condition strings.
-   - Real condition names containing apostrophes such as `alzheimer's disease` can break this flow.
+## Demo Credentials
 
-5. The frontend does not expose the new backend signals clearly.
-   - The UI still emphasizes only the old score breakdown and does not show enough of the new medication / geography reasoning.
+| Role | Username | Password |
+|------|----------|----------|
+| Patient | john_doe | pass123 |
+| Hospital | mgh | mgh123 |
 
-## Recommended Next Changes
+## Recommended Test Flow
 
-Priority order:
-
-1. Fix `app.py` to pass `patient_id` into `pipeline.match_patient()` when mode is `patient`.
-2. Replace inline JS string interpolation in `templates/index.html` with safe event binding / `data-*` attributes.
-3. Rework pseudo-label logic so the training target explicitly uses the new real-data features or replace pseudo-labels with reviewed labels.
-4. Add actual hospital-aware ranking:
-   - facility name filtering
-   - patient address / ZIP normalization
-   - distance-to-site feature using facility latitude / longitude
-5. Surface the new reasoning fields in the UI.
-
-## Known Operational Notes
-
-- The workspace is large: about 4.34 GB.
-- Several files are over GitHub's normal 100 MB limit.
-- Git LFS is required if the intent is to push the datasets and artifacts as-is.
-
-Large files include:
-
-- `Final Clinical Trails Data/trail_eligibilities.csv`
-- `Final Clinical Trails Data/trail_detailed_descriptions.csv`
-- `Final Clinical Trails Data/trail_brief_summaries.csv`
-- `Final Clinical Trails Data/trail_facilities.csv`
-- `Final Patients Synthea Data/patients_medications.csv`
-- `Final Patients Synthea Data/patients_observations.csv`
-- `model_cache.pkl`
-
-## How To Resume
-
-1. Ensure Python dependencies are available.
-2. Start the app with:
-
-```powershell
-python app.py
-```
-
-3. Open `http://localhost:5000`
-4. First fix to make:
-   - wire `patient_id` through `/api/match`
-5. Then continue with frontend hardening and hospital-aware ranking.
+See "What to Test" section returned at end of last Claude session.
 
 ## Git Note
 
-This handoff file was created because the original Claude session stopped mid-work due to rate limits. It is intended to give the next person enough context to continue without re-discovering the current architecture and known issues from scratch.
+Last GitHub push: `ff67a12` — all local work above is uncommitted.

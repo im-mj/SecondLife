@@ -155,6 +155,17 @@ def _drug_keyword(name: str) -> str:
     return words[0]
 
 
+def _name_tokens(name: str) -> frozenset:
+    """Tokenise a hospital/facility name: drop stopwords and short words."""
+    _STOP = {"the","of","and","at","for","in","a","an","is","by",
+             "hospital","medical","center","centre","clinic","university",
+             "health","care","healthcare","system","institute","foundation",
+             "research","general","regional","national","community",
+             "services","department","division","college","school"}
+    words = re.findall(r"[a-z]+", str(name).lower())
+    return frozenset(w for w in words if w not in _STOP and len(w) >= 3)
+
+
 def _geo_score(patient_state_full: str, trial_states: set) -> float:
     """
     State-level geo feasibility score.
@@ -331,12 +342,13 @@ class SecondLifePipeline:
         self.patient_profiles  = {}   # patient_id → profile dict
 
         # New real-data lookups
-        self.cond_rarity_map       = {}   # condition → rarity score
-        self.trial_us_states       = {}   # trial_id → set of US state full names
-        self.trial_drug_keywords   = {}   # trial_id → set of drug keywords
-        self.patient_med_keywords  = {}   # patient_id → set of med keywords
-        self.patient_lab_score     = {}   # patient_id → lab coverage (0–1)
-        self.patient_address_state = {}   # patient_id → full US state name
+        self.cond_rarity_map        = {}   # condition → rarity score
+        self.trial_us_states        = {}   # trial_id → set of US state full names
+        self.trial_facility_tokens  = {}   # trial_id → list of frozensets of facility name tokens
+        self.trial_drug_keywords    = {}   # trial_id → set of drug keywords
+        self.patient_med_keywords   = {}   # patient_id → set of med keywords
+        self.patient_lab_score      = {}   # patient_id → lab coverage (0–1)
+        self.patient_address_state  = {}   # patient_id → full US state name
 
         self.stats = {}
 
@@ -438,8 +450,8 @@ class SecondLifePipeline:
         )
         print(f"  Trials with drug intervention data: {len(self.trial_drug_keywords):,}")
 
-        # ---- State-level geo: build trial_id → set of US state full names ----
-        print("[pipeline] Building trial US state index (geo feasibility) …")
+        # ---- State-level geo + facility-name index ----
+        print("[pipeline] Building trial US state index and facility-name index …")
         fac = self.trial_facilities_df
         if (fac is not None and not fac.empty
                 and "Facility_Country" in fac.columns
@@ -455,9 +467,27 @@ class SecondLifePipeline:
             self.trial_us_states = (
                 fac_us.groupby("Trial_ID")["state_clean"].apply(set).to_dict()
             )
+            # Facility-name token sets: trial_id → list of frozensets of significant words
+            if "Facility_Name" in fac_us.columns:
+                def _tok(name):
+                    _STOP = {"the","of","and","at","for","in","a","an","is","by",
+                             "hospital","medical","center","centre","clinic","university",
+                             "health","care","healthcare","system","institute","foundation",
+                             "research","general","regional","national","community",
+                             "services","department","division","college","school"}
+                    words = re.findall(r"[a-z]+", str(name).lower())
+                    return frozenset(w for w in words if w not in _STOP and len(w) >= 3)
+                fac_us["name_tokens"] = fac_us["Facility_Name"].apply(_tok)
+                self.trial_facility_tokens = (
+                    fac_us.groupby("Trial_ID")["name_tokens"].apply(list).to_dict()
+                )
+            else:
+                self.trial_facility_tokens = {}
         else:
             self.trial_us_states = {}
+            self.trial_facility_tokens = {}
         print(f"  Trials with US facility state data: {len(self.trial_us_states):,}")
+        print(f"  Trials with facility name tokens:   {len(self.trial_facility_tokens):,}")
 
         # ---- NEW: Trial keywords (extend condition matching bridge) ----
         print("[pipeline] Loading trial keywords …")
@@ -826,15 +856,24 @@ class SecondLifePipeline:
                     summary = str(s_rows.iloc[0][col])[:400]
 
             location = ""
+            facility_name = ""
             n_sites  = 0
             if self.trial_facilities_df is not None and not self.trial_facilities_df.empty:
                 f_rows = self.trial_facilities_df[self.trial_facilities_df["Trial_ID"] == tid]
                 if not f_rows.empty:
-                    r = f_rows.iloc[0]
+                    # Prefer US sites first, fall back to first row
+                    us_rows = f_rows[f_rows.get("Facility_Country", pd.Series(dtype=str))
+                                     .str.strip().str.lower()
+                                     .isin(["united states", "usa", "us"])] \
+                              if "Facility_Country" in f_rows.columns else pd.DataFrame()
+                    r = us_rows.iloc[0] if not us_rows.empty else f_rows.iloc[0]
                     parts = [str(r.get(c, "")) for c in
                              ["Facility_City", "Facility_State", "Facility_Country"]
                              if str(r.get(c, "")).strip() not in ("", "nan")]
                     location = ", ".join(parts)
+                    if "Facility_Name" in r.index:
+                        fn = str(r.get("Facility_Name", "")).strip()
+                        facility_name = fn if fn not in ("", "nan") else ""
                     n_sites  = len(f_rows)
 
             results.append({
@@ -860,11 +899,137 @@ class SecondLifePipeline:
                 "trial_conditions":        sorted(tp["conditions"]),
                 "criteria":                tp["criteria"],
                 "summary":                 summary,
-                "location":               location,
+                "location":                location,
+                "facility_name":           facility_name,
                 "n_sites":                 n_sites,
             })
 
         return results
+
+    # ------------------------------------------------------------------
+    # Hospital trial dashboard
+    # ------------------------------------------------------------------
+
+    def trials_for_hospital(self, hospital_name: str, location: str,
+                             research_conditions: list, top_k: int = 20) -> list:
+        """
+        Return trials relevant to this hospital using 3-tier logic (reversed from
+        hospitals-for-trial): Tier 1 = Jaccard name match, Tier 2 = same state,
+        Tier 3 = research-condition overlap.
+        """
+        h_tokens = _name_tokens(hospital_name)
+
+        m = re.search(r",\s*([A-Z]{2})\s*$", str(location).strip())
+        h_state = STATE_ABBREV.get(m.group(1), "") if m else ""
+        rc_set  = {r.lower().strip() for r in (research_conditions or []) if r}
+
+        collected: list[tuple[str, int]] = []
+        seen: set = set()
+
+        # Tier 1: facility-name Jaccard ≥ 0.25
+        for trial_id, fac_list in self.trial_facility_tokens.items():
+            if trial_id not in self.trial_profiles:
+                continue
+            if not self.trial_profiles[trial_id].get("is_active", False):
+                continue
+            best = 0.0
+            for ft in fac_list:
+                if h_tokens and ft:
+                    inter = len(h_tokens & ft)
+                    union = len(h_tokens | ft)
+                    s = inter / union if union else 0.0
+                    if s > best:
+                        best = s
+            if best >= 0.25:
+                collected.append((trial_id, 1))
+                seen.add(trial_id)
+
+        # Tier 2: same state — cap at 2×top_k additional to avoid runaway
+        if h_state and len(collected) < top_k:
+            t2_cap = top_k * 2
+            t2_added = 0
+            for trial_id, states in self.trial_us_states.items():
+                if t2_added >= t2_cap:
+                    break
+                if trial_id in seen or trial_id not in self.trial_profiles:
+                    continue
+                if not self.trial_profiles[trial_id].get("is_active", False):
+                    continue
+                if h_state in states:
+                    collected.append((trial_id, 2))
+                    seen.add(trial_id)
+                    t2_added += 1
+
+        # Tier 3: research-condition overlap — fill up to top_k
+        if rc_set and len(collected) < top_k:
+            t3_cap = top_k * 2
+            t3_added = 0
+            for cond in rc_set:
+                for trial_id in self.cond_to_trials.get(cond, []):
+                    if t3_added >= t3_cap:
+                        break
+                    if trial_id in seen or trial_id not in self.trial_profiles:
+                        continue
+                    if not self.trial_profiles[trial_id].get("is_active", False):
+                        continue
+                    collected.append((trial_id, 3))
+                    seen.add(trial_id)
+                    t3_added += 1
+
+        collected.sort(key=lambda x: x[1])
+        collected = collected[:top_k]
+
+        _REASON = {1: "verified trial site", 2: "trial in your state",
+                   3: "matches your research conditions"}
+
+        output = []
+        for trial_id, tier in collected:
+            tp = self.trial_profiles[trial_id]
+
+            summary = ""
+            if self.trial_summaries_df is not None and not self.trial_summaries_df.empty:
+                s_rows = self.trial_summaries_df[self.trial_summaries_df["Trial_ID"] == trial_id]
+                if not s_rows.empty:
+                    col = "Brief_Summary" if "Brief_Summary" in s_rows.columns else s_rows.columns[-1]
+                    summary = str(s_rows.iloc[0][col])[:300]
+
+            location_str = facility_name = ""
+            n_sites = 0
+            if self.trial_facilities_df is not None and not self.trial_facilities_df.empty:
+                f_rows = self.trial_facilities_df[self.trial_facilities_df["Trial_ID"] == trial_id]
+                if not f_rows.empty:
+                    n_sites = len(f_rows)
+                    us_rows = f_rows[f_rows["Facility_Country"].str.strip().str.lower()
+                                     .isin(["united states", "usa", "us"])] \
+                              if "Facility_Country" in f_rows.columns else pd.DataFrame()
+                    r = us_rows.iloc[0] if not us_rows.empty else f_rows.iloc[0]
+                    parts = [str(r.get(c, "")) for c in
+                             ["Facility_City", "Facility_State", "Facility_Country"]
+                             if str(r.get(c, "")).strip() not in ("", "nan")]
+                    location_str = ", ".join(parts)
+                    if "Facility_Name" in r.index:
+                        fn = str(r.get("Facility_Name", "")).strip()
+                        facility_name = fn if fn not in ("", "nan") else ""
+
+            output.append({
+                "trial_id":     trial_id,
+                "title":        tp["title"],
+                "phase":        tp["phase"],
+                "status":       tp["status"],
+                "min_age":      int(tp["min_age"]),
+                "max_age":      int(tp["max_age"]),
+                "sex":          tp["sex"],
+                "enrollment":   tp["enrollment"],
+                "conditions":   sorted(tp["conditions"]),
+                "summary":      summary,
+                "location":     location_str,
+                "facility_name": facility_name,
+                "n_sites":      n_sites,
+                "match_tier":   tier,
+                "match_reason": _REASON[tier],
+            })
+
+        return output
 
     # ------------------------------------------------------------------
     # Patient lookup

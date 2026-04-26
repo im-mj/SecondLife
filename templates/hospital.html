@@ -31,17 +31,23 @@ body{background:#0d1117;}
   <ul class="nav nav-tabs mb-4" id="mainTabs">
     <li class="nav-item"><button class="nav-link active" data-tab="patients">Available Patients</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="search">Search by Condition</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="trials">My Trials</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="inbox">Inbox <span id="inboxBadge" class="badge bg-danger ms-1" style="display:none">0</span></button></li>
     <li class="nav-item"><button class="nav-link" data-tab="connections">My Connections</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="profile">My Profile</button></li>
   </ul>
 
   <!-- ===== AVAILABLE PATIENTS ===== -->
   <div id="tab-patients">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
       <div>
         <h6 class="mb-0">Patients Open to Trials</h6>
-        <small class="text-muted">Patients who have opted in to be contacted by research hospitals</small>
+        <small class="text-muted">Patients who have opted in and are not yet connected to your hospital</small>
       </div>
       <button class="btn btn-sm btn-primary" id="refreshPatientsBtn">Refresh</button>
+    </div>
+    <div class="alert alert-secondary py-2 small mb-3">
+      Only patients with <strong>Open to Trials</strong> toggled on and no existing connection with your hospital appear here.
     </div>
     <div id="pLoading" class="text-center py-4" style="display:none">
       <div class="spinner-border text-primary spinner-border-sm"></div>
@@ -54,7 +60,7 @@ body{background:#0d1117;}
 
   <!-- ===== SEARCH ===== -->
   <div id="tab-search" style="display:none">
-    <div class="row g-3 align-items-end mb-4">
+    <div class="row g-3 align-items-end mb-3">
       <div class="col-md-6">
         <label class="form-label small fw-bold">Search by Medical Condition</label>
         <div class="position-relative">
@@ -67,9 +73,13 @@ body{background:#0d1117;}
         <button class="btn btn-primary w-100" id="searchBtn">Search</button>
       </div>
       <div class="col-md-4">
-        <div class="alert alert-secondary py-2 small mb-0">
-          Only patients who are <strong>open to trials</strong> appear in results.
+        <div class="form-check mb-1">
+          <input class="form-check-input" type="checkbox" id="searchIncludeConnected">
+          <label class="form-check-label small" for="searchIncludeConnected">
+            Include patients already connected to your hospital
+          </label>
         </div>
+        <small class="text-muted">Default: only unconnected patients shown</small>
       </div>
     </div>
     <div id="sLoading" class="text-center py-4" style="display:none">
@@ -79,6 +89,64 @@ body{background:#0d1117;}
       No matching patients found for this condition.
     </div>
     <div class="row g-3" id="sGrid"></div>
+  </div>
+
+  <!-- ===== MY TRIALS ===== -->
+  <div id="tab-trials" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h6 class="mb-0">Trials Relevant to Your Hospital</h6>
+        <small class="text-muted">Matched by facility name, state, or your research conditions</small>
+      </div>
+      <button class="btn btn-sm btn-primary" id="refreshTrialsBtn">Refresh</button>
+    </div>
+    <div id="tLoading" class="text-center py-4" style="display:none">
+      <div class="spinner-border text-primary spinner-border-sm"></div>
+    </div>
+    <div id="tEmpty" class="text-center py-5 text-muted" style="display:none">
+      No trials found. Update your profile with your location and research conditions.
+    </div>
+    <div class="row g-2" id="tGrid"></div>
+  </div>
+
+  <!-- ===== INBOX ===== -->
+  <div id="tab-inbox" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">Inbox</h6>
+      <button class="btn btn-sm btn-outline-secondary" onclick="loadInbox()">Refresh</button>
+    </div>
+    <div id="inboxLoading" class="text-center text-muted py-4">Loading…</div>
+    <div id="inboxEmpty" class="text-center text-muted py-4" style="display:none">No message threads yet. Accept a connection and start chatting.</div>
+    <div id="inboxList"></div>
+  </div>
+
+  <!-- ===== PROFILE ===== -->
+  <div id="tab-profile" style="display:none">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="patient-card">
+          <h6 class="mb-3">Hospital Profile</h6>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Hospital / Institution Name</label>
+            <input type="text" class="form-control" id="profName">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Location <span class="text-muted fw-normal">(City, ST — e.g. Boston, MA)</span></label>
+            <input type="text" class="form-control" id="profLoc">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Research Conditions</label>
+            <div class="d-flex gap-2 mb-2">
+              <input type="text" class="form-control form-control-sm" id="profCondInput"
+                     placeholder="Type a condition and press Enter" autocomplete="off">
+            </div>
+            <div id="profCondTags" class="d-flex flex-wrap gap-1 mb-1"></div>
+          </div>
+          <div id="profMsg" class="small mb-2" style="min-height:1.2rem"></div>
+          <button class="btn btn-success" id="saveProfileBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ===== CONNECTIONS ===== -->
@@ -95,7 +163,7 @@ body{background:#0d1117;}
         <table class="table table-dark table-hover table-sm align-middle">
           <thead><tr>
             <th>Patient</th><th>Age/Gender</th><th>Conditions</th>
-            <th>Trial</th><th>Initiated</th><th>Status</th><th>Message</th><th>Action</th>
+            <th>Trial</th><th>Initiated</th><th>Status</th><th>Message</th><th>Action</th><th>Chat</th>
           </tr></thead>
           <tbody id="cTbody"></tbody>
         </table>
@@ -129,32 +197,73 @@ body{background:#0d1117;}
   </div>
 </div>
 
+<!-- Messages Modal -->
+<div class="modal fade" id="msgModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-secondary" style="background:#161b22">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="msgModalTitle">Messages</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="msgThread" style="height:320px;overflow-y:auto;padding:1rem;background:#0d1117"></div>
+        <div class="p-3 border-top border-secondary d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="msgInput"
+                 placeholder="Type a message…" maxlength="2000">
+          <button class="btn btn-success btn-sm px-3" id="msgSendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const HOSPITAL = {{ hospital | tojson }};
-let connectModal, targetPatientId;
+let connectModal, msgModal, targetPatientId, currentConnId;
+let profConds = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   connectModal = new bootstrap.Modal(document.getElementById('connectModal'));
+  msgModal     = new bootstrap.Modal(document.getElementById('msgModal'));
 
   document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
   document.getElementById('logoutBtn').addEventListener('click', logout);
   document.getElementById('refreshPatientsBtn').addEventListener('click', loadPatients);
   document.getElementById('refreshConnsBtn').addEventListener('click', loadConnections);
+  document.getElementById('refreshTrialsBtn').addEventListener('click', loadTrials);
   document.getElementById('searchBtn').addEventListener('click', doSearch);
   document.getElementById('sendConnBtn').addEventListener('click', submitConnect);
+  document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+  document.getElementById('msgSendBtn').addEventListener('click', sendMsg);
+  document.getElementById('msgInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMsg();
+  });
 
-  // Condition autocomplete
+  // Profile condition tag input
+  const pci = document.getElementById('profCondInput');
+  pci.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = pci.value.trim().toLowerCase();
+      if (val && !profConds.includes(val)) { profConds.push(val); renderProfTags(); }
+      pci.value = '';
+    }
+  });
+
+  // Condition autocomplete (search tab)
   const si = document.getElementById('searchInput');
   si.addEventListener('input', () => condAuto(si.value));
   si.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') hideAuto(); });
   document.addEventListener('click', e => { if (!si.contains(e.target)) hideAuto(); });
 
-  // Event delegation for connections table action buttons
+  // Event delegation for connections table
   document.getElementById('cTbody').addEventListener('click', e => {
     const btn = e.target.closest('[data-cid]');
-    if (btn) updateStatus(btn.dataset.cid, btn.dataset.st);
+    if (!btn) return;
+    if (btn.dataset.st)                     updateStatus(btn.dataset.cid, btn.dataset.st);
+    else if ('chat' in btn.dataset)         openMsgModal(btn.dataset.cid, btn.dataset.chat);
   });
 
   loadPatients();
@@ -163,9 +272,62 @@ document.addEventListener('DOMContentLoaded', () => {
 function switchTab(name) {
   document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === name));
-  ['patients','search','connections'].forEach(t =>
+  ['patients','search','trials','inbox','connections','profile'].forEach(t =>
     document.getElementById('tab-'+t).style.display = t === name ? '' : 'none');
   if (name === 'connections') loadConnections();
+  if (name === 'profile')     initProfile();
+  if (name === 'trials')      loadTrials();
+  if (name === 'inbox')       loadInbox();
+}
+
+// ── PROFILE ──────────────────────────────────────────────────────────────────
+function initProfile() {
+  document.getElementById('profName').value = HOSPITAL.hospital_name || '';
+  document.getElementById('profLoc').value  = HOSPITAL.location || '';
+  profConds = Array.isArray(HOSPITAL.research_conditions) ? [...HOSPITAL.research_conditions] : [];
+  renderProfTags();
+  document.getElementById('profMsg').textContent = '';
+}
+
+function renderProfTags() {
+  const wrap = document.getElementById('profCondTags');
+  wrap.innerHTML = '';
+  profConds.forEach((c, i) => {
+    const span = document.createElement('span');
+    span.className = 'badge bg-info text-dark d-inline-flex align-items-center gap-1';
+    const t = document.createElement('span'); t.textContent = c;
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'btn-close'; x.style.fontSize = '.45rem';
+    x.addEventListener('click', () => { profConds.splice(i, 1); renderProfTags(); });
+    span.appendChild(t); span.appendChild(x); wrap.appendChild(span);
+  });
+}
+
+async function saveProfile() {
+  const body = {
+    hospital_name:       document.getElementById('profName').value.trim(),
+    location:            document.getElementById('profLoc').value.trim(),
+    research_conditions: profConds,
+  };
+  const msg = document.getElementById('profMsg');
+  msg.textContent = 'Saving…'; msg.style.color = '#8b949e';
+  try {
+    const r = await fetch('/api/hospital/profile', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      // Update the in-memory HOSPITAL object so navbar reflects change
+      HOSPITAL.hospital_name        = d.hospital_name;
+      HOSPITAL.location             = d.location;
+      HOSPITAL.research_conditions  = d.research_conditions;
+      document.querySelector('.navbar .text-light.small').textContent = d.hospital_name;
+      msg.textContent = 'Saved.'; msg.style.color = '#2ea043';
+    } else {
+      msg.textContent = d.error || 'Save failed'; msg.style.color = '#f85149';
+    }
+  } catch(e) { msg.textContent = 'Network error'; msg.style.color = '#f85149'; }
 }
 
 // ── PATIENTS ─────────────────────────────────────────────────────────────────
@@ -180,10 +342,12 @@ async function loadPatients() {
 
 async function doSearch() {
   const cond = document.getElementById('searchInput').value.trim();
+  const ic   = document.getElementById('searchIncludeConnected').checked ? '1' : '0';
   hideAuto();
   show('sLoading'); hide('sEmpty'); document.getElementById('sGrid').innerHTML = '';
   try {
-    const d = await fetch('/api/hospital/patients?condition='+encodeURIComponent(cond)).then(r=>r.json());
+    const url = '/api/hospital/patients?condition='+encodeURIComponent(cond)+'&include_connected='+ic;
+    const d   = await fetch(url).then(r=>r.json());
     renderGrid(d.patients||[], 'sGrid', 'sEmpty');
   } catch(e) { show('sEmpty'); }
   hide('sLoading');
@@ -273,9 +437,10 @@ async function loadConnections() {
       const age  = c.dob ? Math.floor((Date.now()-new Date(c.dob))/31557600000) : '?';
       const cstr = (Array.isArray(c.conditions)?c.conditions:[]).slice(0,3).join(', ');
       const sc   = {pending:'st-pending',accepted:'st-accepted',rejected:'st-rejected',completed:'st-completed'}[c.status]||'';
+      const pname = (c.first_name||'')+' '+(c.last_name||'');
       const tr   = document.createElement('tr');
       tr.innerHTML = [
-        escH((c.first_name||'')+ ' ' +(c.last_name||'')),
+        escH(pname),
         escH(age+' / '+(c.gender||'?')),
         escH(cstr||'—'),
         escH((c.trial_title||'—').substring(0,40)),
@@ -283,6 +448,8 @@ async function loadConnections() {
         `<span class="${sc} fw-bold">${escH(c.status)}</span>`,
         escH((c.message||'').substring(0,50)),
         statusBtns(c.id, c.status),
+        `<button class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:.72rem"
+           data-cid="${escA(c.id)}" data-chat="${escA(pname)}">💬 Chat</button>`,
       ].map(v=>`<td>${v}</td>`).join('');
       tbody.appendChild(tr);
     });
@@ -307,6 +474,153 @@ async function updateStatus(cid, status) {
     body: JSON.stringify({status})
   });
   loadConnections();
+}
+
+// ── MY TRIALS ────────────────────────────────────────────────────────────────
+async function loadTrials() {
+  show('tLoading'); hide('tEmpty'); document.getElementById('tGrid').innerHTML = '';
+  try {
+    const d = await fetch('/api/hospital/trials').then(r => r.json());
+    const trials = d.trials || [];
+    if (!trials.length) { show('tEmpty'); hide('tLoading'); return; }
+    trials.forEach(t => {
+      const stc     = t.status === 'RECRUITING' ? 'success' : t.status.includes('ACTIVE') ? 'info' : 'secondary';
+      const tierCls = t.match_tier === 1 ? 'bg-success' : 'bg-secondary';
+      const div = document.createElement('div');
+      div.className = 'col-12';
+      div.innerHTML = `<div class="patient-card mb-2">
+        <div class="d-flex flex-wrap gap-1 align-items-center mb-2">
+          <span class="badge bg-${stc}">${escH(t.status)}</span>
+          ${t.phase&&t.phase!=='N/A'?`<span class="badge bg-info text-dark">${escH(t.phase)}</span>`:''}
+          <span class="badge ${tierCls} ms-auto">${escH(t.match_reason)}</span>
+        </div>
+        <h6 class="mb-1">${escH(t.title)}</h6>
+        <div class="text-muted small mb-2">${escH(t.trial_id)}</div>
+        ${t.summary?`<p class="text-muted mb-2" style="font-size:.8rem">${escH(t.summary.substring(0,260)+(t.summary.length>260?'…':''))}</p>`:''}
+        <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+          ${t.facility_name?`<span>📍 ${escH(t.facility_name)}</span>`:''}
+          ${t.location?`<span>🗺 ${escH(t.location)}</span>`:''}
+          ${t.n_sites?`<span>🏥 ${t.n_sites} site${t.n_sites!==1?'s':''}</span>`:''}
+          ${t.enrollment?`<span>👥 ${t.enrollment}</span>`:''}
+          <span>Ages ${t.min_age}–${t.max_age} · ${escH(t.sex||'ALL')}</span>
+        </div>
+        <a href="https://clinicaltrials.gov/study/${escA(t.trial_id)}" target="_blank" rel="noopener"
+           class="btn btn-sm btn-outline-secondary">View on ClinicalTrials.gov ↗</a>
+      </div>`;
+      document.getElementById('tGrid').appendChild(div);
+    });
+  } catch(e) { show('tEmpty'); }
+  hide('tLoading');
+}
+
+// ── MESSAGING ─────────────────────────────────────────────────────────────────
+async function openMsgModal(connId, label) {
+  currentConnId = connId;
+  document.getElementById('msgModalTitle').textContent = 'Chat — ' + label;
+  document.getElementById('msgThread').innerHTML =
+    '<div class="text-center text-muted small py-4">Loading…</div>';
+  document.getElementById('msgInput').value = '';
+  msgModal.show();
+  await loadMsgs();
+}
+
+async function loadMsgs() {
+  try {
+    const d = await fetch('/api/hospital/connections/'+encodeURIComponent(currentConnId)+'/messages').then(r=>r.json());
+    renderMsgs(d.messages || []);
+  } catch(e) {
+    document.getElementById('msgThread').innerHTML =
+      '<div class="text-danger small text-center py-4">Error loading messages.</div>';
+  }
+}
+
+function renderMsgs(msgs) {
+  const thread = document.getElementById('msgThread');
+  if (!msgs.length) {
+    thread.innerHTML = '<div class="text-muted small text-center py-4">No messages yet. Start the conversation.</div>';
+    return;
+  }
+  thread.innerHTML = '';
+  msgs.forEach(m => {
+    const mine = m.sender_role === 'hospital';
+    const wrap = document.createElement('div');
+    wrap.className = 'd-flex mb-2 ' + (mine ? 'justify-content-end' : 'justify-content-start');
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'max-width:72%;padding:.5rem .75rem;border-radius:12px;font-size:.85rem;'
+      + (mine ? 'background:#1f6feb;color:#fff;' : 'background:#21262d;color:#c9d1d9;');
+    const bodyEl = document.createElement('div'); bodyEl.textContent = m.body;
+    const ts = document.createElement('div');
+    ts.style.cssText = 'font-size:.65rem;opacity:.6;margin-top:.2rem;text-align:right';
+    ts.textContent = (m.created_at||'').replace('T',' ').substring(0,16);
+    bubble.appendChild(bodyEl); bubble.appendChild(ts);
+    wrap.appendChild(bubble); thread.appendChild(wrap);
+  });
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const body  = input.value.trim();
+  if (!body || !currentConnId) return;
+  input.value = '';
+  try {
+    await fetch('/api/hospital/connections/'+encodeURIComponent(currentConnId)+'/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({body})
+    });
+    await loadMsgs();
+  } catch(e) {}
+}
+
+// ── INBOX ─────────────────────────────────────────────────────────────────────
+async function loadInbox() {
+  document.getElementById('inboxLoading').style.display = '';
+  document.getElementById('inboxEmpty').style.display   = 'none';
+  document.getElementById('inboxList').innerHTML = '';
+  try {
+    const d = await fetch('/api/hospital/inbox').then(r => r.json());
+    document.getElementById('inboxLoading').style.display = 'none';
+    const threads = d.threads || [];
+    if (!threads.length) { document.getElementById('inboxEmpty').style.display = ''; return; }
+    let totalUnread = 0;
+    threads.forEach(t => {
+      totalUnread += t.unread_count || 0;
+      const pname   = (t.first_name || '') + ' ' + (t.last_name || '');
+      const trial   = (t.trial_title || 'General Inquiry').substring(0, 60);
+      const preview = (t.last_message || 'No messages yet').substring(0, 100);
+      const card = document.createElement('div');
+      card.className = 'card bg-secondary mb-2';
+      const body = document.createElement('div');
+      body.className = 'card-body d-flex justify-content-between align-items-center gap-3';
+      const info = document.createElement('div');
+      info.style.minWidth = '0';
+      const nameEl = document.createElement('strong'); nameEl.textContent = pname;
+      info.appendChild(nameEl);
+      if (t.unread_count) {
+        const bEl = document.createElement('span');
+        bEl.className = 'badge bg-danger ms-2'; bEl.textContent = t.unread_count;
+        info.appendChild(bEl);
+      }
+      const trialEl = document.createElement('div');
+      trialEl.className = 'text-muted small text-truncate'; trialEl.textContent = trial;
+      const previewEl = document.createElement('div');
+      previewEl.className = 'text-secondary small fst-italic text-truncate'; previewEl.textContent = preview;
+      info.appendChild(trialEl); info.appendChild(previewEl);
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-sm btn-outline-light flex-shrink-0';
+      btn.textContent = 'Open';
+      btn.dataset.cid = t.id; btn.dataset.chat = pname;
+      body.appendChild(info); body.appendChild(btn);
+      card.appendChild(body);
+      document.getElementById('inboxList').appendChild(card);
+    });
+    const badge = document.getElementById('inboxBadge');
+    if (totalUnread > 0) { badge.textContent = totalUnread; badge.style.display = ''; }
+    else badge.style.display = 'none';
+  } catch(e) {
+    document.getElementById('inboxLoading').style.display = 'none';
+    document.getElementById('inboxEmpty').style.display = '';
+  }
 }
 
 // ── CONDITION AUTOCOMPLETE ────────────────────────────────────────────────────

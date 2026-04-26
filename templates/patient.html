@@ -15,6 +15,7 @@ body{background:#0d1117;}
 @media(max-width:576px){.detail-grid{grid-template-columns:repeat(2,1fr);}}
 .detail-grid .lbl{font-size:.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;}
 .detail-grid .val{font-size:.9rem;font-weight:600;}
+.detail-grid .col-span-2{grid-column:span 2;}
 .bar-section{background:#0d1117;border-radius:8px;padding:.75rem;}
 .bar-lbl{font-size:.75rem;color:#8b949e;}.bar-val{font-size:.75rem;font-weight:600;}
 .progress{height:5px;background:#21262d;}
@@ -48,6 +49,7 @@ body{background:#0d1117;}
     <li class="nav-item"><button class="nav-link active" data-tab="profile">My Profile</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="trials">Suggested Trials</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="connections">My Connections</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="inbox">Inbox <span id="inboxBadge" class="badge bg-danger ms-1" style="display:none">0</span></button></li>
   </ul>
 
   <!-- ===== PROFILE TAB ===== -->
@@ -110,6 +112,22 @@ body{background:#0d1117;}
                    placeholder="Type medication name and press Enter…">
           </div>
         </div>
+
+        <div class="card border-secondary mt-3" style="background:#161b22">
+          <div class="card-header border-secondary d-flex justify-content-between">
+            <span>Documents</span>
+            <small class="text-muted">PDF, DOCX, TXT, PNG, JPG — max 10 MB</small>
+          </div>
+          <div class="card-body">
+            <div id="docList" class="mb-2"></div>
+            <div class="d-flex gap-2">
+              <input type="file" class="form-control form-control-sm" id="docFileInput"
+                     accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg" style="flex:1">
+              <button class="btn btn-sm btn-outline-primary" id="docUploadBtn">Upload</button>
+            </div>
+            <div id="docMsg" class="small mt-1" style="min-height:1rem"></div>
+          </div>
+        </div>
       </div>
 
       <div class="col-lg-5">
@@ -152,6 +170,11 @@ body{background:#0d1117;}
       <p class="text-muted mt-2 small">Analyzing your profile against clinical trials…</p>
     </div>
     <div id="trialsMsg" class="text-center py-5 text-muted" style="display:none"></div>
+    <div class="alert alert-secondary py-2 small mb-3" id="trialsDisclaimer" style="display:none">
+      <strong>About these scores:</strong> Match percentages are predictions from a model trained on
+      synthetic patient data and rule-based labels — not validated clinical eligibility determinations.
+      Always consult a healthcare provider before enrolling in any trial.
+    </div>
     <div id="trialsResults"></div>
   </div>
 
@@ -169,10 +192,41 @@ body{background:#0d1117;}
         <table class="table table-dark table-hover table-sm align-middle">
           <thead><tr>
             <th>Hospital</th><th>Trial</th><th>Initiated By</th>
-            <th>Status</th><th>Message</th><th>Date</th>
+            <th>Status</th><th>Message</th><th>Date</th><th>Chat</th>
           </tr></thead>
           <tbody id="connsTbody"></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INBOX TAB ===== -->
+  <div id="tab-inbox" style="display:none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">Inbox</h6>
+      <button class="btn btn-sm btn-outline-secondary" onclick="loadInbox()">Refresh</button>
+    </div>
+    <div id="inboxLoading" class="text-center text-muted py-4">Loading…</div>
+    <div id="inboxEmpty" class="text-center text-muted py-4" style="display:none">No message threads yet. Connect with a hospital to start messaging.</div>
+    <div id="inboxList"></div>
+  </div>
+</div>
+
+<!-- Messages Modal -->
+<div class="modal fade" id="msgModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-secondary" style="background:#161b22">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="msgModalTitle">Messages</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="msgThread" style="height:320px;overflow-y:auto;padding:1rem;background:#0d1117"></div>
+        <div class="p-3 border-top border-secondary d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="msgInput"
+                 placeholder="Type a message…" maxlength="2000">
+          <button class="btn btn-primary btn-sm px-3" id="msgSendBtn">Send</button>
+        </div>
       </div>
     </div>
   </div>
@@ -188,8 +242,7 @@ body{background:#0d1117;}
       </div>
       <div class="modal-body">
         <p class="text-muted small" id="modalTrialInfo"></p>
-        <div class="sec-head">Select a Hospital</div>
-        <div id="hospitalList" class="list-group mb-3" style="max-height:200px;overflow-y:auto"></div>
+        <div id="hospitalList" class="mb-3" style="max-height:420px;overflow-y:auto"></div>
         <label class="form-label small">Message <span class="text-muted">(optional)</span></label>
         <textarea class="form-control form-control-sm" id="modalMsg" rows="3"
                   placeholder="Introduce yourself or ask a question…"></textarea>
@@ -210,12 +263,19 @@ body{background:#0d1117;}
 const PATIENT = {{ patient | tojson }};
 let conditions  = [...(PATIENT.conditions  || [])];
 let medications = [...(PATIENT.medications || [])];
+let documents   = [...(PATIENT.documents   || [])];
 let sysReady = false;
-let connectModal, currentTrialId, currentTrialTitle, selectedHospId;
+let connectModal, msgModal, currentTrialId, currentTrialTitle, selectedHospId, currentConnId;
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   connectModal = new bootstrap.Modal(document.getElementById('connectModal'));
+  msgModal     = new bootstrap.Modal(document.getElementById('msgModal'));
+  document.getElementById('msgSendBtn').addEventListener('click', sendMsg);
+  document.getElementById('msgInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMsg();
+  });
+  document.getElementById('docUploadBtn').addEventListener('click', uploadDoc);
 
   document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
@@ -264,25 +324,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   initProfile();
-  checkStatus();
+  checkStatus().then(() => { if (!sysReady) startStatusPoll(); });
 });
 
 // ── STATUS ───────────────────────────────────────────────────────────────────
+let _statusPoll = null;
 async function checkStatus() {
   try {
     const d = await fetch('/api/status').then(r => r.json());
     sysReady = !!d.ready;
     document.getElementById('sysBanner').style.display = sysReady ? 'none' : '';
+    if (sysReady && _statusPoll) { clearInterval(_statusPoll); _statusPoll = null; }
   } catch(e) {}
+}
+function startStatusPoll() {
+  if (_statusPoll) return;
+  _statusPoll = setInterval(async () => { await checkStatus(); }, 5000);
 }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('#mainTabs .nav-link').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === name));
-  ['profile','trials','connections'].forEach(t =>
+  ['profile','trials','connections','inbox'].forEach(t =>
     document.getElementById('tab-'+t).style.display = t === name ? '' : 'none');
   if (name === 'connections') loadConnections();
+  if (name === 'inbox')       loadInbox();
 }
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -296,7 +363,7 @@ function initProfile() {
   document.getElementById('acctInfo').innerHTML =
     'Username: <strong>' + escH(PATIENT.username) + '</strong><br>' +
     'Member since: <strong>' + escH((PATIENT.created_at||'').split('T')[0]) + '</strong>';
-  renderCondTags(); renderMedTags();
+  renderCondTags(); renderMedTags(); renderDocList();
 }
 
 async function saveProfile() {
@@ -384,6 +451,7 @@ async function loadTrials() {
   if (!sysReady) { alert('Pipeline still loading. Please wait a moment.'); return; }
   document.getElementById('trialsLoading').style.display = '';
   document.getElementById('trialsMsg').style.display = 'none';
+  document.getElementById('trialsDisclaimer').style.display = 'none';
   document.getElementById('trialsResults').innerHTML = '';
   document.getElementById('getMatchesBtn').disabled = true;
   try {
@@ -408,6 +476,7 @@ async function loadTrials() {
 function renderTrials(trials) {
   const wrap = document.getElementById('trialsResults');
   wrap.innerHTML = '';
+  document.getElementById('trialsDisclaimer').style.display = trials.length ? '' : 'none';
   trials.forEach(t => { wrap.insertAdjacentHTML('beforeend', buildCard(t)); });
 }
 
@@ -462,6 +531,8 @@ function buildCard(t) {
       <div><div class="lbl">Gender</div><div class="val">${escH(t.sex||'ALL')}</div></div>
       <div><div class="lbl">Sites</div><div class="val">${t.n_sites||'—'}</div></div>
       <div><div class="lbl">Enrollment</div><div class="val">${t.enrollment||'—'}</div></div>
+      ${t.facility_name?`<div class="col-span-2"><div class="lbl">Lead Site</div><div class="val">${escH(t.facility_name)}</div></div>`:''}
+      ${t.location?`<div class="col-span-2"><div class="lbl">Location</div><div class="val">${escH(t.location)}</div></div>`:''}
     </div>
     <div class="bar-section mb-3"><div class="sec-head">Match Analysis</div>${bars}</div>
     <div class="mb-3">
@@ -502,6 +573,25 @@ async function toggleInterest(btn, trialId, title, score) {
 }
 
 // ── CONNECT WITH HOSPITAL ─────────────────────────────────────────────────────
+function _buildHospBtn(h) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'list-group-item list-group-item-action';
+  btn.dataset.hid = h.id;
+  const nm = document.createElement('strong'); nm.textContent = h.hospital_name;
+  const lc = document.createElement('small');
+  lc.className = 'd-block text-muted'; lc.textContent = h.location || '';
+  btn.appendChild(nm); btn.appendChild(lc);
+  if (h.match_reason) {
+    const badge = document.createElement('span');
+    badge.className = `badge ${h.match_tier === 1 ? 'bg-success' : 'bg-secondary'} ms-1`;
+    badge.style.fontSize = '.65rem';
+    badge.textContent = h.match_reason;
+    btn.appendChild(badge);
+  }
+  return btn;
+}
+
 async function openConnectModal(trialId, title) {
   currentTrialId = trialId; currentTrialTitle = title;
   selectedHospId = null;
@@ -514,20 +604,35 @@ async function openConnectModal(trialId, title) {
   try {
     const d = await fetch('/api/patient/hospitals-for-trial?trial_id='+encodeURIComponent(trialId)).then(r=>r.json());
     list.innerHTML = '';
-    if (!(d.hospitals||[]).length) {
+    const hospitals = d.hospitals || [];
+    if (!hospitals.length) {
       list.innerHTML = '<div class="list-group-item text-muted small">No registered hospitals for this trial.</div>';
       return;
     }
-    d.hospitals.forEach(h => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'list-group-item list-group-item-action';
-      btn.dataset.hid = h.id;
-      const nm = document.createElement('strong'); nm.textContent = h.hospital_name;
-      const lc = document.createElement('small');
-      lc.className = 'd-block text-muted'; lc.textContent = h.location || '';
-      btn.appendChild(nm); btn.appendChild(lc); list.appendChild(btn);
-    });
+    const verified = hospitals.filter(h => h.match_tier === 1);
+    const related  = hospitals.filter(h => h.match_tier !== 1);
+
+    if (verified.length) {
+      const head = document.createElement('div');
+      head.className = 'sec-head text-success mb-1 mt-2';
+      head.textContent = 'Verified Trial Sites';
+      const grp = document.createElement('div');
+      grp.className = 'list-group mb-3';
+      verified.forEach(h => grp.appendChild(_buildHospBtn(h)));
+      list.appendChild(head); list.appendChild(grp);
+    }
+
+    if (related.length) {
+      const head = document.createElement('div');
+      head.className = 'sec-head mb-1 mt-2';
+      head.innerHTML = 'Related Hospitals'
+        + ' <span class="text-muted fw-normal" style="text-transform:none;letter-spacing:0;font-size:.68rem">'
+        + '— not confirmed trial sites</span>';
+      const grp = document.createElement('div');
+      grp.className = 'list-group mb-2';
+      related.forEach(h => grp.appendChild(_buildHospBtn(h)));
+      list.appendChild(head); list.appendChild(grp);
+    }
   } catch(e) {
     list.innerHTML = '<div class="list-group-item text-danger small">Error loading hospitals.</div>';
   }
@@ -560,19 +665,187 @@ async function loadConnections() {
     msg.style.display='none'; wrap.style.display='';
     tbody.innerHTML = '';
     conns.forEach(c => {
-      const sc = {pending:'st-pending',accepted:'st-accepted',rejected:'st-rejected',completed:'st-completed'}[c.status]||'';
-      const tr = document.createElement('tr');
+      const sc  = {pending:'st-pending',accepted:'st-accepted',rejected:'st-rejected',completed:'st-completed'}[c.status]||'';
+      const tr  = document.createElement('tr');
+      const hname = c.hospital_name || '—';
       tr.innerHTML = [
-        escH(c.hospital_name||'—'),
+        escH(hname),
         escH((c.trial_title||'—').substring(0,50)),
         escH(c.initiated_by||''),
         `<span class="${sc} fw-bold">${escH(c.status)}</span>`,
         escH((c.message||'').substring(0,60)),
         escH((c.created_at||'').split('T')[0]),
+        `<button class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:.72rem"
+           onclick="openMsgModal('${escA(c.id)}','${escA(hname)}')">💬 Chat</button>`,
       ].map(v=>`<td>${v}</td>`).join('');
       tbody.appendChild(tr);
     });
   } catch(e) {}
+}
+
+// ── DOCUMENTS ─────────────────────────────────────────────────────────────────
+function renderDocList() {
+  const wrap = document.getElementById('docList');
+  wrap.innerHTML = '';
+  if (!documents.length) {
+    const p = document.createElement('p');
+    p.className = 'text-muted small mb-1'; p.textContent = 'No documents uploaded yet.';
+    wrap.appendChild(p); return;
+  }
+  documents.forEach(doc => {
+    const row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-2 mb-1 small';
+    const nm  = document.createElement('span'); nm.className = 'flex-grow-1 text-truncate'; nm.textContent = doc.filename;
+    const dt  = document.createElement('small'); dt.className = 'text-muted flex-shrink-0';
+    dt.textContent = (doc.uploaded_at||'').substring(0,10);
+    const dl  = document.createElement('a');
+    dl.href = '/api/patient/documents/'+encodeURIComponent(doc.id)+'/download';
+    dl.className = 'btn btn-sm btn-outline-secondary py-0 px-1 flex-shrink-0';
+    dl.style.fontSize = '.7rem'; dl.textContent = '↓'; dl.title = 'Download';
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'btn btn-sm btn-outline-danger py-0 px-1 flex-shrink-0';
+    del.style.fontSize = '.7rem'; del.textContent = '✕'; del.title = 'Delete';
+    del.addEventListener('click', () => deleteDoc(doc.id));
+    row.appendChild(nm); row.appendChild(dt); row.appendChild(dl); row.appendChild(del);
+    wrap.appendChild(row);
+  });
+}
+
+async function uploadDoc() {
+  const input = document.getElementById('docFileInput');
+  const msg   = document.getElementById('docMsg');
+  if (!input.files.length) { msg.className = 'text-warning small mt-1'; msg.textContent = 'Select a file first.'; return; }
+  const file = input.files[0];
+  if (file.size > 10 * 1024 * 1024) { msg.className = 'text-danger small mt-1'; msg.textContent = 'File too large (max 10 MB).'; return; }
+  const form = new FormData(); form.append('file', file);
+  msg.className = 'text-muted small mt-1'; msg.textContent = 'Uploading…';
+  try {
+    const r = await fetch('/api/patient/documents', {method:'POST', body:form});
+    const d = await r.json();
+    if (r.ok) {
+      documents.push(d.document); renderDocList(); input.value = '';
+      msg.className = 'text-success small mt-1'; msg.textContent = '✓ Uploaded';
+    } else {
+      msg.className = 'text-danger small mt-1'; msg.textContent = d.error || 'Upload failed';
+    }
+  } catch(e) { msg.className = 'text-danger small mt-1'; msg.textContent = 'Network error'; }
+}
+
+async function deleteDoc(docId) {
+  try {
+    const r = await fetch('/api/patient/documents/'+encodeURIComponent(docId), {method:'DELETE'});
+    if (r.ok) { documents = documents.filter(d => d.id !== docId); renderDocList(); }
+  } catch(e) {}
+}
+
+// ── MESSAGING ─────────────────────────────────────────────────────────────────
+async function openMsgModal(connId, label) {
+  currentConnId = connId;
+  document.getElementById('msgModalTitle').textContent = 'Chat — ' + label;
+  document.getElementById('msgThread').innerHTML =
+    '<div class="text-center text-muted small py-4">Loading…</div>';
+  document.getElementById('msgInput').value = '';
+  msgModal.show();
+  await loadMsgs();
+}
+
+async function loadMsgs() {
+  try {
+    const d = await fetch('/api/patient/connections/'+encodeURIComponent(currentConnId)+'/messages').then(r=>r.json());
+    renderMsgs(d.messages || []);
+  } catch(e) {
+    document.getElementById('msgThread').innerHTML =
+      '<div class="text-danger small text-center py-4">Error loading messages.</div>';
+  }
+}
+
+function renderMsgs(msgs) {
+  const thread = document.getElementById('msgThread');
+  if (!msgs.length) {
+    thread.innerHTML = '<div class="text-muted small text-center py-4">No messages yet. Start the conversation.</div>';
+    return;
+  }
+  thread.innerHTML = '';
+  msgs.forEach(m => {
+    const mine = m.sender_role === 'patient';
+    const wrap = document.createElement('div');
+    wrap.className = 'd-flex mb-2 ' + (mine ? 'justify-content-end' : 'justify-content-start');
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'max-width:72%;padding:.5rem .75rem;border-radius:12px;font-size:.85rem;'
+      + (mine ? 'background:#1f6feb;color:#fff;' : 'background:#21262d;color:#c9d1d9;');
+    const bodyEl = document.createElement('div'); bodyEl.textContent = m.body;
+    const ts = document.createElement('div');
+    ts.style.cssText = 'font-size:.65rem;opacity:.6;margin-top:.2rem;text-align:right';
+    ts.textContent = (m.created_at||'').replace('T',' ').substring(0,16);
+    bubble.appendChild(bodyEl); bubble.appendChild(ts);
+    wrap.appendChild(bubble); thread.appendChild(wrap);
+  });
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const body  = input.value.trim();
+  if (!body || !currentConnId) return;
+  input.value = '';
+  try {
+    await fetch('/api/patient/connections/'+encodeURIComponent(currentConnId)+'/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({body})
+    });
+    await loadMsgs();
+  } catch(e) {}
+}
+
+// ── INBOX ─────────────────────────────────────────────────────────────────────
+async function loadInbox() {
+  document.getElementById('inboxLoading').style.display = '';
+  document.getElementById('inboxEmpty').style.display   = 'none';
+  document.getElementById('inboxList').innerHTML = '';
+  try {
+    const d = await fetch('/api/patient/inbox').then(r => r.json());
+    document.getElementById('inboxLoading').style.display = 'none';
+    const threads = d.threads || [];
+    if (!threads.length) { document.getElementById('inboxEmpty').style.display = ''; return; }
+    let totalUnread = 0;
+    threads.forEach(t => {
+      totalUnread += t.unread_count || 0;
+      const hname   = t.hospital_name || 'Hospital';
+      const trial   = (t.trial_title || 'General Inquiry').substring(0, 60);
+      const preview = (t.last_message || 'No messages yet').substring(0, 100);
+      const card = document.createElement('div');
+      card.className = 'card bg-secondary mb-2';
+      const body = document.createElement('div');
+      body.className = 'card-body d-flex justify-content-between align-items-center gap-3';
+      const info = document.createElement('div');
+      info.style.minWidth = '0';
+      const nameEl = document.createElement('strong'); nameEl.textContent = hname;
+      info.appendChild(nameEl);
+      if (t.unread_count) {
+        const bEl = document.createElement('span');
+        bEl.className = 'badge bg-danger ms-2'; bEl.textContent = t.unread_count;
+        info.appendChild(bEl);
+      }
+      const trialEl = document.createElement('div');
+      trialEl.className = 'text-muted small text-truncate'; trialEl.textContent = trial;
+      const previewEl = document.createElement('div');
+      previewEl.className = 'text-secondary small fst-italic text-truncate'; previewEl.textContent = preview;
+      info.appendChild(trialEl); info.appendChild(previewEl);
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-sm btn-outline-light flex-shrink-0';
+      btn.textContent = 'Open';
+      btn.onclick = () => openMsgModal(t.id, hname);
+      body.appendChild(info); body.appendChild(btn);
+      card.appendChild(body);
+      document.getElementById('inboxList').appendChild(card);
+    });
+    const badge = document.getElementById('inboxBadge');
+    if (totalUnread > 0) { badge.textContent = totalUnread; badge.style.display = ''; }
+    else badge.style.display = 'none';
+  } catch(e) {
+    document.getElementById('inboxLoading').style.display = 'none';
+    document.getElementById('inboxEmpty').style.display = '';
+  }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
