@@ -6,13 +6,11 @@ All deliverables in `E:\DSCI 5260\Project\PT\`:
 
 | File | Description |
 |------|-------------|
-| `Second_Life_Research_Paper.docx` | Full CRISP-DM research paper: Abstract, §1–15, Appendix A (Glossary 40+ terms), Appendix B (API Reference 33 endpoints), all 7 architecture diagrams as code blocks. ~376 KB. |
-| `Second_Life_Presentation.pptx` | v1 — Dark navy theme, dense technical content. Keep, do not edit. |
-| `Second_Life_Presentation_v2.pptx` | v2 — Clean white theme, high-level content. Keep, do not edit. |
-| `Second_Life_Presentation_Final.pptx` | **Final version** (user-modified from v3). 6 slides: Title, Business Understanding & Introduction, Literature Review, Data Understanding, Modeling & Evaluation, Recommendations & Next Steps. ~47 KB. |
-| `Second_Life_Speaking_Points.docx` | Speaking guide per slide for Final PPT. ~10-min duration, casual-professional tone. ~39 KB. |
+| `Second_Life_Presentation_Final.pptx` | Final presentation. 6 slides: Title, Business Understanding & Introduction, Literature Review, Data Understanding, Modeling & Evaluation, Recommendations & Next Steps. |
 | `Architecture Diagrams/secondlife workflow architecture diagrams.html` | 7 Mermaid.js diagrams: System Architecture, DB Schema, ML Pipeline, Patient Journey, Hospital Journey, Tiered Matching, Feature Engineering. View in browser. |
-| `Architecture Diagrams/secondlife high level architecture.png` | High-level architecture image. Embedded in research paper. |
+| `Architecture Diagrams/secondlife high level architecture.png` | High-level architecture image. |
+| `Architecture Diagrams/secondlife high level architecture.drawio` | Editable source for high-level architecture diagram. |
+| `Architecture Diagrams/secondlife low level architecture.drawio` | Editable source for low-level architecture diagram. |
 
 ---
 
