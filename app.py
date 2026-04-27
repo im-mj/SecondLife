@@ -29,6 +29,19 @@ app.config["JSON_SORT_KEYS"] = False
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB upload limit
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+_RUNNING_ON_HF_SPACE = bool(os.environ.get("SPACE_ID"))
+if _RUNNING_ON_HF_SPACE:
+    # Hugging Face renders Spaces under huggingface.co as an embedded app, so
+    # the session cookie must be explicitly marked for cross-site use.
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_PARTITIONED"] = True
+    if not os.environ.get("SECRET_KEY"):
+        print(
+            "[app] WARNING: SECRET_KEY is not set. Sessions will reset when the Space restarts.",
+            file=sys.stderr,
+        )
+
 UPLOAD_DIR = Path(__file__).parent / "uploads" / "patient_docs"
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt", ".png", ".jpg", ".jpeg"}
 
