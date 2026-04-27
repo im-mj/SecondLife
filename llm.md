@@ -1,5 +1,20 @@
 # Second Life — Project Reference (LLM Context Document)
-DSCI 5260 | Group 7 | Last updated: 2026-04-25 (post Session 6 — inbox, messaging, trial dashboard, document upload, dataset seeding)
+
+## Project Deliverables
+
+All deliverables in `E:\DSCI 5260\Project\PT\`:
+
+| File | Description |
+|------|-------------|
+| `Second_Life_Research_Paper.docx` | Full CRISP-DM research paper: Abstract, §1–15, Appendix A (Glossary 40+ terms), Appendix B (API Reference 33 endpoints), all 7 architecture diagrams as code blocks. ~376 KB. |
+| `Second_Life_Presentation.pptx` | v1 — Dark navy theme, dense technical content. Keep, do not edit. |
+| `Second_Life_Presentation_v2.pptx` | v2 — Clean white theme, high-level content. Keep, do not edit. |
+| `Second_Life_Presentation_Final.pptx` | **Final version** (user-modified from v3). 6 slides: Title, Business Understanding & Introduction, Literature Review, Data Understanding, Modeling & Evaluation, Recommendations & Next Steps. ~47 KB. |
+| `Second_Life_Speaking_Points.docx` | Speaking guide per slide for Final PPT. ~10-min duration, casual-professional tone. ~39 KB. |
+| `Architecture Diagrams/secondlife workflow architecture diagrams.html` | 7 Mermaid.js diagrams: System Architecture, DB Schema, ML Pipeline, Patient Journey, Hospital Journey, Tiered Matching, Feature Engineering. View in browser. |
+| `Architecture Diagrams/secondlife high level architecture.png` | High-level architecture image. Embedded in research paper. |
+
+---
 
 ## Architecture Overview
 
@@ -14,10 +29,12 @@ Flask web app (port 5000) with two authenticated portals:
 - `templates/landing.html` — Login/register landing page
 - `templates/patient.html` — Patient SPA (profile, trials, connections, inbox)
 - `templates/hospital.html` — Hospital SPA (patients, search, my trials, inbox, connections, profile)
+- `Architecture Diagrams/secondlife workflow architecture diagrams.html` — 7 Mermaid.js architecture diagrams
 - `llm.md` — This file
 
 ## Running the System
 
+### Local
 ```powershell
 cd "E:\DSCI 5260\Project\PT"
 python app.py
@@ -28,6 +45,13 @@ On first run (no model_cache.pkl): loads all data files (~2-3 min), trains RF mo
 On subsequent runs: loads cached model immediately.
 
 Delete `model_cache.pkl` to force retrain (required after pipeline feature changes).
+
+### Public Deployment — Hugging Face Spaces
+- **URL:** https://huggingface.co/spaces/MrNoOne07/second-life
+- **Runtime:** Docker container, Flask on port 7860 (mapped to public HTTPS)
+- **Stack:** Flask 3.1.3, SQLite, Bootstrap 5.3.2
+- Zero installation — accessible from any browser
+- Same codebase as local; Docker handles environment setup
 
 ## Demo Credentials
 
