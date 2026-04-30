@@ -565,6 +565,15 @@ def update_connection_status(cid: str, status: str):
         c.commit()
 
 
+def delete_connection(cid: str) -> bool:
+    """Delete a connection and its message history."""
+    with _conn() as c:
+        c.execute("DELETE FROM connection_messages WHERE connection_id=?", (cid,))
+        cur = c.execute("DELETE FROM connections WHERE id=?", (cid,))
+        c.commit()
+    return cur.rowcount > 0
+
+
 def get_open_patients_for_hospital(hospital_id: str, condition_filter: str = "",
                                     include_connected: bool = False) -> list:
     """

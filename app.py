@@ -573,6 +573,30 @@ def update_hospital_connection_status(cid):
     return jsonify({"success": True})
 
 
+@app.route("/api/patient/connections/<cid>", methods=["DELETE"])
+def delete_patient_connection(cid):
+    err = _patient_required()
+    if err:
+        return err
+    conn = db.get_connection(cid)
+    if not conn or conn["patient_id"] != session["patient_id"]:
+        return jsonify({"error": "Not found"}), 404
+    db.delete_connection(cid)
+    return jsonify({"success": True})
+
+
+@app.route("/api/hospital/connections/<cid>", methods=["DELETE"])
+def delete_hospital_connection(cid):
+    err = _hospital_required()
+    if err:
+        return err
+    conn = db.get_connection(cid)
+    if not conn or conn["hospital_id"] != session["hospital_id"]:
+        return jsonify({"error": "Not found"}), 404
+    db.delete_connection(cid)
+    return jsonify({"success": True})
+
+
 # ---------------------------------------------------------------------------
 # Connection Messages
 # ---------------------------------------------------------------------------

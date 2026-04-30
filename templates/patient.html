@@ -192,7 +192,7 @@ body{background:#0d1117;}
         <table class="table table-dark table-hover table-sm align-middle">
           <thead><tr>
             <th>Hospital</th><th>Trial</th><th>Initiated By</th>
-            <th>Status</th><th>Message</th><th>Date</th><th>Chat</th>
+            <th>Status</th><th>Message</th><th>Date</th><th>Actions</th>
           </tr></thead>
           <tbody id="connsTbody"></tbody>
         </table>
@@ -678,12 +678,36 @@ async function loadConnections() {
         `<button class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:.72rem"
            onclick="openMsgModal('${escA(c.id)}','${escA(hname)}')">💬 Chat</button>`,
       ].map(v=>`<td>${v}</td>`).join('');
+      const actionsCell = tr.lastElementChild;
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn btn-sm btn-outline-danger py-0 px-2 ms-1';
+      delBtn.style.fontSize = '.72rem';
+      delBtn.textContent = 'Delete';
+      delBtn.addEventListener('click', () => deleteConnection(c.id, hname));
+      actionsCell.appendChild(delBtn);
       tbody.appendChild(tr);
     });
   } catch(e) {}
 }
 
-// ── DOCUMENTS ─────────────────────────────────────────────────────────────────
+// Connection removal
+// Remove the selected hospital connection and associated chat thread.
+async function deleteConnection(cid, hospitalName) {
+  const ok = confirm(`Remove connection with ${hospitalName || 'this hospital'}? This will also remove the chat thread.`);
+  if (!ok) return;
+  try {
+    const r = await fetch('/api/patient/connections/'+encodeURIComponent(cid), {method:'DELETE'});
+    const d = await r.json();
+    if (!r.ok) { alert(d.error || 'Delete failed'); return; }
+    await loadConnections();
+    loadInbox();
+  } catch(e) {
+    alert('Network error');
+  }
+}
+
+// Documents
 function renderDocList() {
   const wrap = document.getElementById('docList');
   wrap.innerHTML = '';
